@@ -10,6 +10,7 @@ import '../styles/UserSettingsModal.css';
 import { NotificationService } from '../service/NotificationService';
 import { useTranslation } from 'react-i18next';
 import { Transition } from '@headlessui/react';
+import { useNavigate } from 'react-router-dom';
 
 interface UserSettingsModalProps {
   isVisible: boolean;
@@ -29,6 +30,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   const [fileList, setFileList] = useState<Array<{ name: string; type: string; size: number }>>([]);
   const [isDragging, setIsDragging] = useState(false);
   const { t } = useTranslation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (isVisible) {
@@ -116,6 +118,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   const handleLogout = () => {
     // Implement your logout logic here
     console.log('User logged out');
+    navigate('/login'); // Redirect to the login page
   };
 
   return (
