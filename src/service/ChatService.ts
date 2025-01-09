@@ -5,7 +5,6 @@ import { CustomError } from "./CustomError";
 import { CHAT_COMPLETIONS_ENDPOINT, MODELS_ENDPOINT } from "../constants/apiEndpoints";
 import { CHAT_STREAM_DEBOUNCE_TIME } from "../constants/appConstants";
 import { NotificationService } from '../service/NotificationService';
-// Removed import for FileData and FileDataRef
 
 interface CompletionChunk {
   id: string;
