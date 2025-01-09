@@ -1,0 +1,119 @@
+.setting-panel {
+  padding: 10px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  flex: 1;
+}
+
+.setting-panel:last-child {
+  border-bottom: none;
+}
+
+#user-settings-content {
+  overflow: auto;
+  position: relative;
+}
+
+/* Custom scrollbar styles */
+#user-settings-content::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+#user-settings-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+#user-settings-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 6px;
+}
+
+#user-settings-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* File upload box styles */
+.file-upload-box {
+  border: 2px dashed #ccc;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  width: 200px; /* Make the width relatively small */
+  margin: 0 auto; /* Center the box */
+}
+
+.drag-drop-area {
+  border: 2px dashed #ccc;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.upload-button-box {
+  margin-top: 10px;
+  text-align: center;
+  background-color: #2c97d5;
+  border-radius: 8px;
+}
+
+.file-name {
+  max-width: 200px;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Table styles */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* Ensure fixed table layout */
+}
+
+table th, table td {
+  padding: 8px;
+  border: 1px solid #ddd;
+  text-align: left; /* Ensure text alignment is consistent */
+  overflow: hidden; /* Ensure content does not overflow */
+  text-overflow: ellipsis; /* Add ellipsis for overflowed text */
+  white-space: nowrap; /* Prevent text from wrapping */
+<<<<<<< HEAD
+  height: 40px; /* Set a fixed height for table rows */
+  line-height: 40px; /* Center text vertically */
+=======
+>>>>>>> 9677285 (file management page)
+}
+
+table th {
+  background-color: #333333;
+  color: white; /* Ensure text color is visible */
+}
+
+table tbody tr:hover {
+  background-color: #828282;
+}
+
+/* Ensure file preview content comes inside the storage tab area */
+.file-info {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1px dotted #ccc;
+  padding: 5px;
+  margin-top: 10px;
+<<<<<<< HEAD
+=======
+}
+
+/* Ensure file preview content comes inside the storage tab area */
+.file-info {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: 1px dotted #ccc;
+  padding: 5px;
+  margin-top: 10px;
+>>>>>>> 9677285 (file management page)
+}
