@@ -1,5 +1,4 @@
 import React, {ReactElement, useState} from 'react';
-import FormLabel from "./FormLabel";
 import {useTranslation} from 'react-i18next';
 
 export type EditorComponentProps<T> = {
@@ -68,8 +67,6 @@ export function EditableField<T>({
 
   return (
       <div className="mb-4">
-        <FormLabel readOnly={readOnly} isEditing={isEditing} label={label} htmlFor={id} value={value}
-                   isModalLabel={isModalLabel}/>
         {!isEditing ? (
             <div className="flex items-center">
           <span className="text-gray-600 dark:text-gray-400 text-sm mr-2">

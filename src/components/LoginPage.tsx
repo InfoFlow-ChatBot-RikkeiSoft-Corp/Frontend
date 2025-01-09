@@ -22,9 +22,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
     }
   };
 
-  const handleMicrosoftLogin = () => {
-    // Redirect to Microsoft's login page
-    window.location.href = 'https://login.microsoftonline.com/';
+  const handleGoogleLogin = () => {
+    // Redirect to Google's login page
+    window.location.href = 'https://accounts.google.com/signin';
   };
 
   return (
@@ -58,8 +58,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
             Log In
           </button>
         </form>
-        <button onClick={handleMicrosoftLogin} className={styles.microsoftButton}>
-          <img src="/microsoft-login.png" alt="Login with Microsoft" className={styles.microsoftImage} />
+        <button onClick={handleGoogleLogin} className={styles.googleButton}>
+          <img src="/google-login.png" alt="Login with Google" className={styles.googleImage} />
         </button>
       </div>
     </div>

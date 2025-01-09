@@ -5,7 +5,6 @@ import CopyButton, {CopyButtonMode} from "./CopyButton";
 import {ChatMessage, MessageType} from "../models/ChatCompletion";
 import UserContentBlock from "./UserContentBlock";
 import { UserContext } from "../UserContext";
-import TextToSpeechButton from "./TextToSpeechButton";
 
 interface Props {
   block: ChatMessage;
@@ -29,14 +28,12 @@ const ChatBlock: React.FC<Props> = ({block, loading, isLastBlock}) => {
     padding: '10px'
   } : {};
 
-
   useEffect(() => {
     if (isEdit) {
       textareaRef.current?.focus();
       textareaRef.current?.setSelectionRange(0, 0);
     }
   }, [isEdit]);
-
 
   const handleRegenerate = () => {
   }
@@ -123,9 +120,6 @@ const ChatBlock: React.FC<Props> = ({block, loading, isLastBlock}) => {
           </div>
           {!(isLastBlock && loading) && (
               <div id={`action-block-${block.id}`} className="flex justify-start items-center ml-10">
-                {block.role === 'assistant' && (
-                    <TextToSpeechButton content={block.content}/>
-                )}
                 <div className="copy-button">
                   <CopyButton mode={CopyButtonMode.Compact} text={block.content}/>
                 </div>
