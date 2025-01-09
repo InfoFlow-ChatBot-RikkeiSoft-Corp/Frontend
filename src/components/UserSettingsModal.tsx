@@ -2,7 +2,6 @@ import React, { useContext, useEffect, useRef, useState } from 'react';
 import {
   CircleStackIcon,
   Cog6ToothIcon,
-  DocumentTextIcon,
   XMarkIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline';
@@ -11,7 +10,6 @@ import '../styles/UserSettingsModal.css';
 import { NotificationService } from '../service/NotificationService';
 import { useTranslation } from 'react-i18next';
 import { Transition } from '@headlessui/react';
-import EditableInstructions from './EditableInstructions';
 
 interface UserSettingsModalProps {
   isVisible: boolean;
@@ -20,7 +18,6 @@ interface UserSettingsModalProps {
 
 enum Tab {
   GENERAL_TAB = 'General',
-  INSTRUCTIONS_TAB = 'Instructions',
   STORAGE_TAB = 'Storage',
 }
 
@@ -32,7 +29,6 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   const [fileList, setFileList] = useState<Array<{ name: string; type: string; size: number }>>([]);
   const [isDragging, setIsDragging] = useState(false);
   const { t } = useTranslation();
-  const editableInstructionsRef = useRef<{ getCurrentValue: () => string }>(null);
 
   useEffect(() => {
     if (isVisible) {
@@ -42,8 +38,6 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   }, [isVisible]);
 
   const handleClose = () => {
-    const currentInstructions = editableInstructionsRef.current?.getCurrentValue();
-    setUserSettings({ ...userSettings, instructions: currentInstructions || '' });
     onClose();
   };
 
@@ -119,6 +113,11 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     setSelectedFile(file);
   };
 
+  const handleLogout = () => {
+    // Implement your logout logic here
+    console.log('User logged out');
+  };
+
   return (
     <Transition show={isVisible} as={React.Fragment}>
       <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 px-4">
@@ -163,21 +162,20 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                 </div>
                 <div
                   className={`cursor-pointer p-4 flex items-center ${
-                    activeTab === Tab.INSTRUCTIONS_TAB ? 'bg-gray-200 dark:bg-gray-700' : ''
-                  }`}
-                  onClick={() => setActiveTab(Tab.INSTRUCTIONS_TAB)}
-                >
-                  <DocumentTextIcon className="w-4 h-4 mr-3" aria-hidden="true" />
-                  {t('instructions-tab')}
-                </div>
-                <div
-                  className={`cursor-pointer p-4 flex items-center ${
                     activeTab === Tab.STORAGE_TAB ? 'bg-gray-200 dark:bg-gray-700' : ''
                   }`}
                   onClick={() => setActiveTab(Tab.STORAGE_TAB)}
                 >
                   <CircleStackIcon className="w-4 h-4 mr-3" aria-hidden="true" />
                   {t('storage-tab')}
+                </div>
+                <div className="logout-button-container">
+                  <button
+                    onClick={handleLogout}
+                    className="logout-button"
+                  >
+                    Logout
+                  </button>
                 </div>
               </div>
               <div className="flex-1 p-4">
@@ -203,13 +201,6 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                       </select>
                     </div>
                   </div>
-                )}
-                {activeTab === Tab.INSTRUCTIONS_TAB && (
-                  <EditableInstructions
-                    ref={editableInstructionsRef}
-                    initialValue={userSettings.instructions || ''}
-                    placeholder={t('instructions-placeholder')}
-                  />
                 )}
                 {activeTab === Tab.STORAGE_TAB && (
                   <>
