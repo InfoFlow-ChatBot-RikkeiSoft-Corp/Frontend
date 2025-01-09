@@ -1,6 +1,5 @@
 import React from 'react';
 import { SNIPPET_MARKERS } from "../constants/appConstants";
-import FoldableTextSection from './FoldableTextSection';
 
 interface UserContentBlockProps {
   text: string;
@@ -24,7 +23,7 @@ const UserContentBlock: React.FC<UserContentBlockProps> = ({ text }) => {
       if (endSnippetIndex !== -1) {
         const snippet = section.substring(0, endSnippetIndex);
         sections.push(
-          <FoldableTextSection key={`foldable-${index}`} content={snippet} />
+          <div key={`snippet-${index}`} style={preformattedTextStyles}>{snippet}</div>
         );
 
         const remainingText = section.substring(endSnippetIndex + SNIPPET_MARKERS.end.length);
