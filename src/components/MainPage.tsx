@@ -179,7 +179,13 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
     addMessage(Role.User, MessageType.Normal, message, fileDataRef, sendMessage);
   }
 
-  const addMessage = (role: Role, messageType: MessageType, message: string, fileDataRef: FileDataRef[], callback?: (callback: ChatMessage[]) => void) => {
+  const addMessage = (
+    role: Role,
+    messageType: MessageType,
+    message: string,
+    fileDataRef: FileDataRef[],
+    callback?: (callback: ChatMessage[]) => void
+  ) => {
     setMessages((prevMessages: ChatMessage[]) => {
       const newMessage: ChatMessage = {
         id: prevMessages.length + 1,
@@ -199,26 +205,43 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
   function sendMessage(updatedMessages: ChatMessage[]) {
     setLoading(true);
     clearInputArea();
-    let systemPrompt = getFirstValidString(conversation?.systemPrompt, userSettings.instructions, OPENAI_DEFAULT_SYSTEM_PROMPT, DEFAULT_INSTRUCTIONS);
-    let messages: ChatMessage[] = [{
-      role: Role.System,
-      content: systemPrompt
-    } as ChatMessage, ...updatedMessages];
   
+    // 시스템 프롬프트 설정
+    let systemPrompt = getFirstValidString(
+      conversation?.systemPrompt,
+      userSettings.instructions,
+      OPENAI_DEFAULT_SYSTEM_PROMPT,
+      DEFAULT_INSTRUCTIONS
+    );
+  
+    // 메시지 리스트 생성
+    let messages: ChatMessage[] = [
+      {
+        role: Role.System,
+        content: systemPrompt,
+      } as ChatMessage,
+      ...updatedMessages,
+    ];
+  
+    // RAG 모델로 메시지 스트리밍 전송
     ChatService.sendMessageStreamed(DEFAULT_MODEL, messages, handleStreamedResponse)
       .then((response: ChatCompletion) => {
-        // nop
+        // 응답 처리 (현재는 추가 로직 없음)
       })
-      .catch(err => {
+      .catch((err) => {
         if (err instanceof CustomError) {
           const message: string = err.message;
           setLoading(false);
           addMessage(Role.Assistant, MessageType.Error, message, []);
         } else {
-          NotificationService.handleUnexpectedError(err, 'Failed to send message to openai.');
+          NotificationService.handleUnexpectedError(
+            err,
+            "Failed to send message to RAG model."
+          );
         }
-      }).finally(() => {
-        setLoading(false); // Stop loading here, whether successful or not
+      })
+      .finally(() => {
+        setLoading(false); // 로딩 상태 종료
       });
   }
   

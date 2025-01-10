@@ -6,5 +6,6 @@ export const MODELS_ENDPOINT = `${OPENAI_ENDPOINT}/v1/models`;
 export const API_ENDPOINTS = {
     LOGIN: '/api/auth/login', // 올바른 경로
     LOGOUT: '/api/auth/logout',
-    SIGNIN: '/api/auth/google-login'
+    SIGNIN: '/api/auth/google-login',
+    RAG_QUERY: "/api/rag/query"
   };
