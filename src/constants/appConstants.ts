@@ -33,3 +33,9 @@ export const TEXT_MIME_TYPES = [
   'application/json',
   'text/markdown'
 ];
+
+export const APP_CONSTANTS = {
+  TOKEN_KEY: "auth_token", // JWT 토큰을 로컬 스토리지에 저장할 키
+  BASE_URL: "https://your-backend-domain.com", // API 기본 URL
+  TOKEN_EXPIRATION: 3600, // 토큰 만료 시간 (초 단위, 필요시 수정 가능)
+};
