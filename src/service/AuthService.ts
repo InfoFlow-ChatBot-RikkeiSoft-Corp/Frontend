@@ -1,37 +1,31 @@
 // AuthService.ts
 
 import axios from "axios";
-import { API_ENDPOINTS } from "./apiEndpoints";
-import { APP_CONSTANTS } from "./appConstants";
+import { API_ENDPOINTS } from "../constants/apiEndpoints";
+import { APP_CONSTANTS } from "../constants/appConstants";
 
 export class AuthService {
-  // 로그인
-  static async login(username: string, password: string): Promise<void> {
+  static async login(username: string, password: string): Promise<string> {
     try {
-      const response = await axios.post(`${APP_CONSTANTS.BASE_URL}${API_ENDPOINTS.LOGIN}`, {
-        username,
-        password,
-      });
-
-      const { token } = response.data;
-      localStorage.setItem(APP_CONSTANTS.TOKEN_KEY, token); // JWT 저장
+      const response = await axios.post(
+        `${APP_CONSTANTS.BASE_URL}${API_ENDPOINTS.LOGIN}`,
+        { username, password }
+      );
+      return response.data.token
     } catch (error: any) {
-      throw new Error(error.response?.data?.error || "로그인 실패");
+      throw new Error(error.response?.data?.error || 'Login failed');
     }
   }
 
-  // 로그아웃
-  static logout(): void {
-    localStorage.removeItem(APP_CONSTANTS.TOKEN_KEY); // JWT 삭제
+  static saveToken(token: string): void {
+    localStorage.setItem(APP_CONSTANTS.TOKEN_KEY, token); // 토큰 저장
   }
 
-  // 토큰 가져오기
   static getToken(): string | null {
-    return localStorage.getItem(APP_CONSTANTS.TOKEN_KEY);
+    return localStorage.getItem(APP_CONSTANTS.TOKEN_KEY); // 저장된 토큰 가져오기
   }
 
-  // 인증 여부 확인
-  static isAuthenticated(): boolean {
-    return !!this.getToken(); // 토큰 존재 여부로 인증 상태 확인
+  static removeToken(): void {
+    localStorage.removeItem(APP_CONSTANTS.TOKEN_KEY); // 토큰 삭제
   }
 }

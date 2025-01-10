@@ -34,8 +34,10 @@ export const TEXT_MIME_TYPES = [
   'text/markdown'
 ];
 
+// appConstants.ts
+
 export const APP_CONSTANTS = {
-  TOKEN_KEY: "auth_token", // JWT 토큰을 로컬 스토리지에 저장할 키
-  BASE_URL: "https://your-backend-domain.com", // API 기본 URL
-  TOKEN_EXPIRATION: 3600, // 토큰 만료 시간 (초 단위, 필요시 수정 가능)
+  TOKEN_KEY: "auth_token", // 로컬 스토리지에 저장될 JWT 키
+  BASE_URL: "http://127.0.0.1:5000", // Flask 백엔드의 기본 URL
+  TOKEN_EXPIRATION: 3600, // 토큰 만료 시간 (초 단위)
 };
