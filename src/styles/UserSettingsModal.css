@@ -39,8 +39,6 @@
   padding: 10px;
   border-radius: 8px;
   background-color: #f9f9f9;
-  width: 200px; /* Make the width relatively small */
-  margin: 0 auto; /* Center the box */
 }
 
 .drag-drop-area {
