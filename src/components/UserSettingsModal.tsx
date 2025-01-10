@@ -4,13 +4,30 @@ import {
   Cog6ToothIcon,
   XMarkIcon,
   TrashIcon,
+  ChevronUpDownIcon,
 } from '@heroicons/react/24/outline';
+import { PencilIcon, UserPlusIcon } from "@heroicons/react/24/solid";
 import { Theme, UserContext } from '../UserContext';
 import '../styles/UserSettingsModal.css';
 import { NotificationService } from '../service/NotificationService';
 import { useTranslation } from 'react-i18next';
 import { Transition } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
+import {
+  Card,
+  CardHeader,
+  Input,
+  Typography,
+  Button,
+  CardBody,
+  Chip,
+  CardFooter,
+  Tabs,
+  TabsHeader,
+  Avatar,
+  IconButton,
+  Tooltip,
+} from "@material-tailwind/react";
 
 interface UserSettingsModalProps {
   isVisible: boolean;
@@ -213,7 +230,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                         onDrop={handleDrop}
                       >
                         <img
-                          src="public/files-icon.png" // Replace this with your actual upload icon path
+                          src="/files-icon.png" // Replace this with your actual upload icon path
                           alt="Upload Icon"
                           className="w-24 h-24 mb-2"
                         />
