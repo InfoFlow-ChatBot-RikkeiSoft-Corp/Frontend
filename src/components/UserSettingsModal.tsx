@@ -11,6 +11,7 @@ import { NotificationService } from '../service/NotificationService';
 import { useTranslation } from 'react-i18next';
 import { Transition } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
+import { API_ENDPOINTS } from '../constants/apiEndpoints';
 
 interface UserSettingsModalProps {
   isVisible: boolean;
@@ -49,54 +50,82 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   };
 
   const handleFileUpload = async () => {
-    if (selectedFile) {
-      try {
-        const fileData = await selectedFile.arrayBuffer();
-        const fileInfo = {
-          name: selectedFile.name,
-          type: selectedFile.type,
-          size: selectedFile.size,
-          data: Array.from(new Uint8Array(fileData)),
-        };
-        localStorage.setItem(`uploadedFile_${selectedFile.name}`, JSON.stringify(fileInfo));
-        NotificationService.handleSuccess('File uploaded successfully.');
-        setSelectedFile(null);
-        loadFileList();
-      } catch (error) {
-        console.error('Failed to upload file:', error);
-        NotificationService.handleUnexpectedError(new Error('Failed to upload file'));
+    if (!selectedFile) {
+      NotificationService.handleError("No file selected.");
+      return;
+    }
+  
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+  
+      const response = await fetch(API_ENDPOINTS.UPLOAD_FILE, {
+        method: "POST",
+        body: formData,
+        headers: {
+          username: "tootsy@gmail.com", // 실제 로그인된 사용자의 username으로 설정
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to upload file.");
       }
+  
+      const data = await response.json();
+      NotificationService.handleSuccess("File uploaded successfully.");
+      console.log("Uploaded file ID:", data.file_id);
+  
+      // 업로드 후 파일 목록 갱신
+      loadFileList();
+    } catch (error) {
+      console.error("Error during file upload:", error);
+      NotificationService.handleUnexpectedError(new Error('Failed to upload file'));
     }
   };
+  
 
-  const loadFileList = () => {
-    const files: Array<{ name: string; type: string; size: number }> = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('uploadedFile_')) {
-        try {
-          const fileInfo = JSON.parse(localStorage.getItem(key) || '{}');
-          if (fileInfo.name && fileInfo.type && fileInfo.size) {
-            files.push({
-              name: fileInfo.name,
-              type: fileInfo.type,
-              size: fileInfo.size,
-            });
-          } else {
-            console.warn(`Invalid file info for key: ${key}`);
-          }
-        } catch (error) {
-          console.error(`Failed to parse file info for key: ${key}`, error);
-        }
+  const loadFileList = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.LIST_FILES, {
+        method: "GET",
+        headers: {
+          username: "tootsy@gmail.com", // 실제 로그인된 사용자의 username으로 설정
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to fetch file list.");
       }
+  
+      const data = await response.json();
+      setFileList(data.files || []); // 데이터의 files 배열을 상태로 설정
+    } catch (error) {
+      console.error("Error loading file list:", error);
+      NotificationService.handleUnexpectedError(new Error('Failed to load file'));
     }
-    setFileList(files);
   };
+  
 
-  const handleFileDelete = (fileName: string) => {
-    localStorage.removeItem(`uploadedFile_${fileName}`);
-    NotificationService.handleSuccess('File deleted successfully.');
-    loadFileList();
+  const handleFileDelete = async (fileId: number) => {
+    try {
+      const response = await fetch(`${API_ENDPOINTS.DELETE_FILE}/${fileId}`, {
+        method: "DELETE",
+        headers: {
+          username: "tootsy@gmail.com", // 실제 로그인된 사용자의 username으로 설정
+        },
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to delete file.");
+      }
+  
+      NotificationService.handleSuccess("File deleted successfully.");
+      // 삭제 후 파일 목록 갱신
+      loadFileList();
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      NotificationService.handleUnexpectedError(new Error('Failed to delete file'));
+    }
   };
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
