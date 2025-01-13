@@ -248,32 +248,51 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
   }
   
   const handleStreamedResponse = (response: string) => {
-    setMessages((prevMessages: ChatMessage[]) => {
-      const updatedMessages = [...prevMessages];
+    try {
+      const parsedResponse = JSON.parse(response); // JSON 파싱
+      const answer = parsedResponse?.answer || ""; // answer 필드만 가져오기
   
-      // 이전 메시지를 유지하고 마지막 Assistant 메시지 업데이트
-      const lastMessageIndex = updatedMessages.length - 1;
-      const lastMessage = updatedMessages[lastMessageIndex];
+      setMessages((prevMessages: ChatMessage[]) => {
+        const updatedMessages = [...prevMessages];
   
-      if (lastMessage && lastMessage.role === Role.Assistant) {
-        updatedMessages[lastMessageIndex] = {
-          ...lastMessage,
-          content: lastMessage.content + response, // 기존 메시지에 추가
-        };
-      } else {
-        // AI 응답 메시지가 없다면 새로 추가
-        updatedMessages.push({
-          id: updatedMessages.length + 1,
+        // 마지막 메시지를 가져옴
+        const lastMessageIndex = updatedMessages.length - 1;
+        const lastMessage = updatedMessages[lastMessageIndex];
+  
+        if (lastMessage && lastMessage.role === Role.Assistant) {
+          // 기존 Assistant 메시지가 있다면 응답 내용을 추가
+          updatedMessages[lastMessageIndex] = {
+            ...lastMessage,
+            content: lastMessage.content + answer, // 기존 내용에 answer 추가
+          };
+        } else {
+          // Assistant 메시지가 없으면 새 메시지 추가
+          updatedMessages.push({
+            id: updatedMessages.length + 1,
+            role: Role.Assistant,
+            messageType: MessageType.Normal,
+            content: answer, // answer 필드만 추가
+            fileDataRef: [],
+          });
+        }
+  
+        return updatedMessages;
+      });
+    } catch (error) {
+      console.error("Error parsing response:", error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          id: prevMessages.length + 1,
           role: Role.Assistant,
-          messageType: MessageType.Normal,
-          content: response,
+          messageType: MessageType.Error,
+          content: "Invalid response format.",
           fileDataRef: [],
-        });
-      }
-  
-      return updatedMessages;
-    });
+        },
+      ]);
+    }
   };
+  
   
   
 
