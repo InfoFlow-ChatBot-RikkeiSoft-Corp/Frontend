@@ -10,17 +10,15 @@ import { APP_CONSTANTS } from "../constants/appConstants";
 
 export class ChatService {
   static async sendMessageStreamed(
-    model: string,
+    userId: string,
     messages: ChatMessage[],
     onStreamedResponse: (response: string) => void
   ): Promise<void> {
-    const url = `${API_ENDPOINTS.RAG_QUERY}`;
+    const url = `http://127.0.0.1:5000/api/chat/${userId}`;
     const payload = {
-      query: messages[messages.length - 1]?.content || "",
-      retriever_type: "similarity", // 추가 옵션
-      k: 5,
-      similarity_threshold: 0.7,
+      question: messages[messages.length - 1]?.content || "", // 마지막 메시지의 내용을 요청에 추가
     };
+
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -35,35 +33,26 @@ export class ChatService {
       const reader = response.body?.getReader();
       if (reader) {
         const decoder = new TextDecoder();
-        let result = "";
+        let accumulatedContent = ""; // 스트리밍된 전체 응답을 누적할 변수
+
+        console.log("Streaming response started...");
 
         while (true) {
           const { done, value } = await reader.read();
-          if (done) break;
+          if (done) break; // 스트림이 끝나면 루프를 종료합니다.
 
-          result += decoder.decode(value, { stream: true });
-          onStreamedResponse(result);
+          const chunk = decoder.decode(value, { stream: true }); // 청크 데이터를 문자열로 디코딩합니다.
+          accumulatedContent += chunk;
+
+          console.log("Received chunk:", chunk);
+          onStreamedResponse(accumulatedContent); // 콜백 함수에 누적된 응답을 전달합니다.
         }
+
+        console.log("Streaming response completed.");
       }
     } catch (error) {
       console.error("Error during message streaming:", error);
       throw error;
     }
   }
-}
-
-interface CompletionChunk {
-  id: string;
-  object: string;
-  created: number;
-  model: string;
-  choices: CompletionChunkChoice[];
-}
-
-interface CompletionChunkChoice {
-  index: number;
-  delta: {
-    content: string;
-  };
-  finish_reason: null | string; // If there can be other values than 'null', use appropriate type instead of string.
 }

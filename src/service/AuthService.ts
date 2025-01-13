@@ -28,4 +28,10 @@ export class AuthService {
   static removeToken(): void {
     localStorage.removeItem(APP_CONSTANTS.TOKEN_KEY); // 토큰 삭제
   }
+  static saveId(user_id: string): void {
+    localStorage.setItem(APP_CONSTANTS.USER_ID, user_id);
+  }
+  static getId(): string | null {
+    return localStorage.getItem(APP_CONSTANTS.USER_ID);
+  }
 }

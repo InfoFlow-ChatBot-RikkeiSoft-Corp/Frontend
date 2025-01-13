@@ -95,7 +95,7 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        ChatService.cancelStream();
+        // ChatService.cancelStream();
       }
     };
 
@@ -194,7 +194,7 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
         content: message,
         fileDataRef: fileDataRef,
       };
-      const updatedMessages = [...prevMessages, newMessage];
+      const updatedMessages = [...prevMessages, newMessage]; // 이전 메시지에 새 메시지 추가
       if (callback) {
         callback(updatedMessages);
       }
@@ -222,12 +222,14 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
       } as ChatMessage,
       ...updatedMessages,
     ];
+    // 사용자 메시지 추가 (마지막 메시지만)
+    const userMessage = updatedMessages[updatedMessages.length - 1];
+    if (userMessage) {
+      addMessage(userMessage.role, userMessage.messageType, userMessage.content, []); // 실제 유저 메시지
+    }
   
     // RAG 모델로 메시지 스트리밍 전송
-    ChatService.sendMessageStreamed(DEFAULT_MODEL, messages, handleStreamedResponse)
-      .then((response: ChatCompletion) => {
-        // 응답 처리 (현재는 추가 로직 없음)
-      })
+    ChatService.sendMessageStreamed("11", messages, handleStreamedResponse)
       .catch((err) => {
         if (err instanceof CustomError) {
           const message: string = err.message;
@@ -245,18 +247,35 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
       });
   }
   
-  function handleStreamedResponse(content: string) {
-    setMessages(prevMessages => {
-      let isNew: boolean = false;
-      try {
-        // todo: this shouldn't be necessary
-        // Your existing logic here
-      } catch (error) {
-        console.error('Failed to handle streamed response:', error);
+  const handleStreamedResponse = (response: string) => {
+    setMessages((prevMessages: ChatMessage[]) => {
+      const updatedMessages = [...prevMessages];
+  
+      // 이전 메시지를 유지하고 마지막 Assistant 메시지 업데이트
+      const lastMessageIndex = updatedMessages.length - 1;
+      const lastMessage = updatedMessages[lastMessageIndex];
+  
+      if (lastMessage && lastMessage.role === Role.Assistant) {
+        updatedMessages[lastMessageIndex] = {
+          ...lastMessage,
+          content: lastMessage.content + response, // 기존 메시지에 추가
+        };
+      } else {
+        // AI 응답 메시지가 없다면 새로 추가
+        updatedMessages.push({
+          id: updatedMessages.length + 1,
+          role: Role.Assistant,
+          messageType: MessageType.Normal,
+          content: response,
+          fileDataRef: [],
+        });
       }
-      return prevMessages;
+  
+      return updatedMessages;
     });
-  }
+  };
+  
+  
 
   const scrollToBottom = () => {
     const chatContainer = document.getElementById('chat-container');
