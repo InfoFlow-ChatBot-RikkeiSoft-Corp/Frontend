@@ -4,30 +4,13 @@ import {
   Cog6ToothIcon,
   XMarkIcon,
   TrashIcon,
-  ChevronUpDownIcon,
 } from '@heroicons/react/24/outline';
-import { PencilIcon, UserPlusIcon } from "@heroicons/react/24/solid";
 import { Theme, UserContext } from '../UserContext';
 import '../styles/UserSettingsModal.css';
 import { NotificationService } from '../service/NotificationService';
 import { useTranslation } from 'react-i18next';
 import { Transition } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Card,
-  CardHeader,
-  Input,
-  Typography,
-  Button,
-  CardBody,
-  Chip,
-  CardFooter,
-  Tabs,
-  TabsHeader,
-  Avatar,
-  IconButton,
-  Tooltip,
-} from "@material-tailwind/react";
 
 interface UserSettingsModalProps {
   isVisible: boolean;
@@ -44,10 +27,12 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   const { userSettings, setUserSettings } = useContext(UserContext);
   const [activeTab, setActiveTab] = useState<Tab>(Tab.GENERAL_TAB);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileList, setFileList] = useState<Array<{ name: string; type: string; size: number }>>([]);
+  const [fileList, setFileList] = useState<Array<{ name: string; type: string; size: number; date: string }>>([]);
   const [isDragging, setIsDragging] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [preview, setPreview] = useState<string | null>(null);
+  const acceptedFileExtensions = ["txt", "pdf", "doc", "docx"].map(ext => `.${ext}`).join(',');
 
   useEffect(() => {
     if (isVisible) {
@@ -63,6 +48,9 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
     setSelectedFile(file);
+    if (file) {
+      setPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleFileUpload = async () => {
@@ -78,6 +66,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
         localStorage.setItem(`uploadedFile_${selectedFile.name}`, JSON.stringify(fileInfo));
         NotificationService.handleSuccess('File uploaded successfully.');
         setSelectedFile(null);
+        setPreview(null);
         loadFileList();
       } catch (error) {
         console.error('Failed to upload file:', error);
@@ -87,7 +76,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   };
 
   const loadFileList = () => {
-    const files: Array<{ name: string; type: string; size: number }> = [];
+    const files: Array<{ name: string; type: string; size: number, date: string}> = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key && key.startsWith('uploadedFile_')) {
@@ -96,8 +85,9 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
           if (fileInfo.name && fileInfo.type && fileInfo.size) {
             files.push({
               name: fileInfo.name,
-              type: fileInfo.type,
+              type: getFileExtension(fileInfo.name),
               size: fileInfo.size,
+              date: new Date().toISOString(),
             });
           } else {
             console.warn(`Invalid file info for key: ${key}`);
@@ -121,21 +111,24 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     setIsDragging(true);
   };
 
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragging(false);
     const file = event.dataTransfer.files[0];
     setSelectedFile(file);
+    if (file) {
+      setPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleLogout = () => {
     // Implement your logout logic here
     console.log('User logged out');
     navigate('/login'); // Redirect to the login page
+  };
+
+  const getFileExtension = (fileName: string) => {
+    return fileName.slice(((fileName.lastIndexOf(".") - 1) >>> 0) + 2);
   };
 
   return (
@@ -223,87 +216,106 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                   </div>
                 )}
                 {activeTab === Tab.STORAGE_TAB && (
-                  <>
-                    <div className="container bg-white p-4 rounded-lg shadow-md">
-                      <div className="file-upload-box"
-                        onDragOver={handleDragOver}
-                        onDrop={handleDrop}
+                <>
+                  <div className="container bg-white p-4 rounded-lg shadow-md">
+                    <div className="file-upload-box"
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                    >
+                      {selectedFile && (
+                        <div className="file-preview">
+                          <div className="file-icon">
+                            <div className="circle">
+                              <span className="icon-text">{getFileExtension(selectedFile.name)}</span>
+                            </div>
+                          </div>
+                          <div className="file-info">
+                            <p className="file-name">{selectedFile.name}</p>
+                            <p className="file-size">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+                          </div>
+                        </div>
+                      )}
+                      {!selectedFile && (
+                        <>
+                          <img
+                            src="/files-icon.png"
+                            alt="Upload Icon"
+                            className="w-24 h-24 mb-2"
+                          />
+                          <p className="text-lg font-semibold">Drag and Drop</p>
+                          <p className="or-text">or</p>
+                        </>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement)?.click()}
+                        className="file-upload-box button"
                       >
-                        <img
-                          src="/files-icon.png" // Replace this with your actual upload icon path
-                          alt="Upload Icon"
-                          className="w-24 h-24 mb-2"
-                        />
-                        <p className="text-lg font-semibold">Drag and Drop</p>
-                        <p className="or-text">or</p>
-                        <button
-                          type="button"
-                          onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement)?.click()}
-                          className="file-upload-box button "
-                        >
-                          Upload Files
-                        </button>
-                        <input
-                          type="file"
-                          id="file-upload"
-                          name="file-upload"
-                          className="hidden"
-                          onChange={handleFileSelect}
-                        />
-                      </div>
-                      <div className="save-button-box mt-4 text-center">
-                        <button
-                          onClick={handleFileUpload}
-                          disabled={!selectedFile}
-                          className="save-button-box button"
-                        >
-                          Save
-                        </button>
-                      </div>
+                        Select File
+                      </button>
+                      <input
+                        type="file"
+                        id="file-upload"
+                        name="file-upload"
+                        className="hidden"
+                        onChange={handleFileSelect}
+                        accept={acceptedFileExtensions}
+                      />
                     </div>
-                    <div className="mt-4">
-                      <h4>Uploaded Files:</h4>
-                      <table>
-                        <thead>
-                          <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Size</th>
-                            <th>Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {fileList.length > 0 ? (
-                            fileList.map((file, index) => (
-                              <tr key={index}>
-                                <td title={file.name}>{file.name}</td>
-                                <td>{file.type}</td>
-                                <td>{(file.size / 1024).toFixed(2)} KB</td>
-                                <td className="py-2 px-4 text-sm text-gray-900 dark:text-white w-1/4 truncate">
-                                  <button
-                                    onClick={() => handleFileDelete(file.name)}
-                                    className="py-1 px-2 bg-red-500 text-white rounded hover:bg-red-700"
-                                  >
-                                    <TrashIcon className="h-4 w-4" aria-hidden="true" />
-                                  </button>
-                                </td>
-                              </tr>
-                            ))
-                          ) : (
-                            <tr>
-                              <td
-                                colSpan={4}
-                                className="py-2 px-4 text-sm text-gray-900 dark:text-white text-center"
-                              >
-                                No files found
+                    <div className="save-button-box mt-4 text-center">
+                      <button
+                        onClick={handleFileUpload}
+                        disabled={!selectedFile}
+                        className="save-button-box button"
+                      >
+                        Upload
+                      </button>
+                    </div>
+                  </div>
+                  <div className="table-container">
+                    <table className="table-auto">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Type</th>
+                          <th>Size</th>
+                          <th>Upload date</th>
+                          <th></th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {fileList.length > 0 ? (
+                          fileList.map((file, index) => (
+                            <tr key={index}>
+                              <td title={file.name}>{file.name}</td>
+                              <td>.{getFileExtension(file.name)}</td>
+                              <td>{(file.size / 1024).toFixed(2)} KB</td>
+                              <td>{new Date(file.date).toLocaleString()}</td> {/* Display the upload date */}
+                              <td className="py-2 px-4 text-sm text-gray-900 dark:text-white w-1/4 truncate">
+                                <button
+                                  onClick={() => handleFileDelete(file.name)}
+                                  className="py-1 px-2 bg-red-500 text-white rounded hover:bg-red-700"
+                                >
+                                  <TrashIcon className="h-4 w-4" aria-hidden="true" />
+                                </button>
                               </td>
                             </tr>
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  </>
-                )}
+                          ))
+                        ) : (
+                          <tr>
+                            <td
+                              colSpan={5}
+                              className="py-2 px-4 text-sm text-gray-900 dark:text-white text-center"
+                            >
+                              No files found
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
               </div>
             </div>
           </div>
