@@ -4,13 +4,13 @@ import { OPENAI_API_KEY } from "../config";
 import { CustomError } from "./CustomError";
 import { CHAT_COMPLETIONS_ENDPOINT, MODELS_ENDPOINT } from "../constants/apiEndpoints";
 import { CHAT_STREAM_DEBOUNCE_TIME } from "../constants/appConstants";
-import { NotificationService } from '../service/NotificationService';
+import { NotificationService } from './NotificationService';
+// Removed import for FileData and FileDataRef
 
 interface CompletionChunk {
   id: string;
   object: string;
   created: number;
-  model: string;
   choices: CompletionChunkChoice[];
 }
 
@@ -23,14 +23,9 @@ interface CompletionChunkChoice {
 }
 
 export class ChatService {
-  private static models: Promise<OpenAIModel[]> | null = null;
   static abortController: AbortController | null = null;
 
-  static async mapChatMessagesToCompletionMessages(modelId: string, messages: ChatMessage[]): Promise<ChatCompletionMessage[]> {
-    const model = await this.getModelById(modelId); // Retrieve the model details
-    if (!model) {
-      throw new Error(`Model with ID '${modelId}' not found`);
-    }
+  static async mapChatMessagesToCompletionMessages(messages: ChatMessage[]): Promise<ChatCompletionMessage[]> {
 
     return messages.map((message) => {
       const contentParts: ChatMessagePart[] = [{
@@ -47,17 +42,15 @@ export class ChatService {
     });
   }
 
-  static async sendMessage(messages: ChatMessage[], modelId: string): Promise<ChatCompletion> {
-    let endpoint = CHAT_COMPLETIONS_ENDPOINT;
+  static async sendMessage(messages: ChatMessage[]): Promise<ChatCompletion> {
+    let endpoint = 'http://127.0.0.1:api/chat/{userId}';
     let headers = {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${OPENAI_API_KEY}`
     };
 
-    const mappedMessages = await ChatService.mapChatMessagesToCompletionMessages(modelId, messages);
+    const mappedMessages = await ChatService.mapChatMessagesToCompletionMessages(messages);
 
     const requestBody: ChatCompletionRequest = {
-      model: modelId,
       messages: mappedMessages,
     };
     const response = await fetch(endpoint, {
@@ -108,12 +101,11 @@ export class ChatService {
     };
 
     const requestBody: ChatCompletionRequest = {
-      model: modelId,
       messages: [],
       stream: true,
     };
 
-    const mappedMessages = await ChatService.mapChatMessagesToCompletionMessages(requestBody.model, messages);
+    const mappedMessages = await ChatService.mapChatMessagesToCompletionMessages(messages);
     requestBody.messages = mappedMessages;
 
     let response: Response;
@@ -232,85 +224,4 @@ export class ChatService {
       this.abortController = null;
     }
   }
-
-  static getModels = (): Promise<OpenAIModel[]> => {
-    return ChatService.fetchModels();
-  }
-
-  static async getModelById(modelId: string): Promise<OpenAIModel | null> {
-    try {
-      const models = await ChatService.getModels();
-
-      const foundModel = models.find(model => model.id === modelId);
-      if (!foundModel) {
-        throw new CustomError(`Model with ID '${modelId}' not found.`, {
-          code: 'MODEL_NOT_FOUND',
-          status: 404
-        });
-      }
-
-      return foundModel;
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        console.error('Failed to get models:', error.message);
-        throw new CustomError('Error retrieving models.', {
-          code: 'FETCH_MODELS_FAILED',
-          status: (error as any).status || 500
-        });
-      } else {
-        console.error('Unexpected error type:', error);
-        throw new CustomError('Unknown error occurred.', {
-          code: 'UNKNOWN_ERROR',
-          status: 500
-        });
-      }
-    }
-  }
-
-  static fetchModels = (): Promise<OpenAIModel[]> => {
-    if (this.models !== null) {
-      return Promise.resolve(this.models);
-    }
-    this.models = fetch(MODELS_ENDPOINT, {
-      headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-      },
-    })
-      .then(response => {
-        if (!response.ok) {
-          return response.json().then(err => {
-            throw new Error(err.error.message);
-          });
-        }
-        return response.json();
-      })
-      .catch(err => {
-        throw new Error(err.message || err);
-      })
-      .then(data => {
-        const models: OpenAIModel[] = data.data;
-        // Filter, enrich with contextWindow from the imported constant, and sort
-        return models
-          .filter(model => model.id.startsWith("gpt-"))
-          .map(model => {
-            const details = modelDetails[model.id] || {
-              contextWindowSize: 0,
-              knowledgeCutoffDate: '',
-              imageSupport: false,
-              preferred: false,
-              deprecated: false,
-            };
-            return {
-              ...model,
-              context_window: details.contextWindowSize,
-              knowledge_cutoff: details.knowledgeCutoffDate,
-              image_support: details.imageSupport,
-              preferred: details.preferred,
-              deprecated: details.deprecated,
-            };
-          })
-          .sort((a, b) => b.id.localeCompare(a.id));
-      });
-    return this.models;
-  };
 }
