@@ -3,6 +3,8 @@
   margin-bottom: 15px;
   border-bottom: 1px solid #eee;
   flex: 1;
+  width: 100%; /* Ensure it takes full width */
+  max-width: 100%; /* Ensure it does not exceed the container */
 }
 
 .setting-panel:last-child {
@@ -12,6 +14,8 @@
 #user-settings-content {
   overflow: auto;
   position: relative;
+  width: 100%; /* Ensure it takes full width */
+  max-width: 100%; /* Ensure it does not exceed the container */
 }
 
 /* Custom scrollbar styles */
@@ -33,61 +37,181 @@
   background: #555;
 }
 
-/* File upload box styles */
-.file-upload-box {
-  border: 2px dashed #ccc;
-  padding: 10px;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-  width: 200px; /* Make the width relatively small */
-  margin: 0 auto; /* Center the box */
-}
-
-.drag-drop-area {
-  border: 2px dashed #ccc;
-  padding: 10px;
-  border-radius: 8px;
-  background-color: #f9f9f9;
-}
-
-.upload-button-box {
-  margin-top: 10px;
-  text-align: center;
-  background-color: #2c97d5;
-  border-radius: 8px;
-}
-
-.file-name {
-  max-width: 200px;
-  display: inline-block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* Table styles */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed; /* Ensure fixed table layout */
-}
-
-table th, table td {
-  padding: 8px;
+/* File preview box */
+.file-preview {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
   border: 1px solid #ddd;
-  text-align: left; /* Ensure text alignment is consistent */
-  overflow: hidden; /* Ensure content does not overflow */
-  text-overflow: ellipsis; /* Add ellipsis for overflowed text */
-  white-space: nowrap; /* Prevent text from wrapping */
+  border-radius: 10px;
+  padding: 10px 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: auto;
+  margin-bottom: 16px; /* Space below the preview box */
 }
 
-table th {
-  background-color: #333333;
-  color: white; /* Ensure text color is visible */
+.file-preview .file-icon .circle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #007bff;
+  color: #ffffff;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 14px;
+  font-weight: bold;
 }
 
-table tbody tr:hover {
-  background-color: #828282;
+.file-preview .file-info {
+  border: 1px solid #ffffff; /* Ensure solid border */
+  flex-grow: 1;
+  padding: 5px;
+  margin-top: 0%;
+  margin-left: 16px;
+}
+
+.file-preview .file-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333333;
+}
+
+.file-preview .file-size {
+  margin: 0;
+  font-size: 12px;
+  color: #666666;
+}
+
+/* Updated file-upload-box styles */
+.file-upload-box {
+  border: 4px dashed #3b82f6; /* Blue border */
+  border-radius: 24px; /* Rounded corners */
+  background-color: #ebf8ff; /* Light blue background */
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px; /* Space above the upload box */
+}
+
+/* Image inside the box */
+.file-upload-box img {
+  width: 90px; /* 24 rem (6 * 16px) */
+  height: 90px;
+  margin-bottom: 8px;
+}
+
+/* Text inside the box */
+.file-upload-box p {
+  font-size: 1.125rem; /* Equivalent to `text-lg` */
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Drag and drop 'or' style */
+.file-upload-box .or-text {
+  font-size: 1.125rem;
+  font-weight: bold;
+  margin: 8px 0;
+}
+
+/* Upload button */
+.file-upload-box button {
+  padding: 8px 16px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.file-upload-box button:hover {
+  background-color: #2563eb; /* Darker blue for hover */
+}
+
+.file-upload-box input[type="file"] {
+  display: none; /* Hidden file input */
+}
+
+/* Save button */
+.save-button-box button {
+  padding: 10px 24px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.save-button-box button:hover {
+  background-color: #2563eb;
+}
+
+.save-button-box button:disabled {
+  background-color: #3b82f6; /* Disabled state */
+  cursor: not-allowed;
+}
+
+/* Table Container */
+.table-container {
+  margin-top: 10px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: 8px; /* Rounded corners for the table container */
+  background-color: #fff; /* White background */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for the container */
+  padding: 10px;
+}
+
+/* Table Styles */
+.table-auto {
+  width: 100%;
+  border-collapse: collapse; /* Collapses cell borders */
+}
+
+.table-auto th,
+.table-auto td {
+  padding: 16px; /* Adds spacing inside table cells */
+  text-align: left; /* Aligns text to the left */
+  border-bottom: 1px solid #e5e7eb; /* Light gray bottom border */
+  color: #374151; /* Dark gray text color */
+  font-size: 0.875rem; /* Text size */
+}
+
+.table-auto th {
+  font-weight: 600; /* Bold font for headers */
+  background-color: #f9fafb; /* Light gray background for headers */
+}
+
+.table-auto td {
+  font-weight: 400; /* Regular font for body cells */
+}
+
+/* Hover Effect */
+.table-auto tbody tr:hover {
+  background-color: #f3f4f6; /* Slightly darker gray on row hover */
+}
+
+/* Responsive Scrollbar */
+.table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #f1f5f9; /* Lighter gray scrollbar track */
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1; /* Gray scrollbar thumb */
+  border-radius: 4px; /* Rounded scrollbar thumb */
 }
 
 /* Ensure file preview content comes inside the storage tab area */

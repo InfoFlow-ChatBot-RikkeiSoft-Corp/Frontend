@@ -36,9 +36,12 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
 
   const deleteConversation = () => {
     ConversationService.deleteConversation(convo.id)
-      .then(() => {
+      .then(async () => {
         loadConversations(); // Reload conversations to reflect the deletion
-      })
+        const remainingConversations = await ConversationService.countConversations();
+        if (remainingConversations === 0) {
+            navigate('/', {state: {reset: Date.now()}}); // Redirect to the home page if there are no conversations left
+        }})
       .catch((error) => {
         console.error('Error deleting conversation:', error);
       });
