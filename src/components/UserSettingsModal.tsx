@@ -11,9 +11,10 @@ import { NotificationService } from '../service/NotificationService';
 import { useTranslation } from 'react-i18next';
 import { Transition } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
+import { API_AUTH_BASE_URL } from '../constants/apiEndpoints';
 
-interface UserSettingsModalProps {
-  isVisible: boolean;
+interface UserSettingsModalProps {  
+  isVisible: boolean;   
   onClose: () => void;
 }
 
@@ -115,10 +116,34 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     setSelectedFile(file);
   };
 
-  const handleLogout = () => {
-    // Implement your logout logic here
-    console.log('User logged out');
-    navigate('/login'); // Redirect to the login page
+  const handleLogout = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('You are not logged in.');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_AUTH_BASE_URL}/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, 
+        },
+      });
+
+      if (response.ok) {
+        localStorage.removeItem('token');
+        navigate('/login');
+      } else {
+        const errorData = await response.json();
+        alert(`Logout failed: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error('Error logging out:', error);
+      alert('An error occurred during logout. Please try again.');
+    }
   };
 
   return (
