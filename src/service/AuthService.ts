@@ -21,20 +21,30 @@ export class AuthService {
         }
     }
 
-    static saveToken(token: string): void {
-        localStorage.setItem(APP_CONSTANTS.TOKEN_KEY, token); // Save token
-    }
+  static saveToken(token: string): void {
+    localStorage.setItem(APP_CONSTANTS.TOKEN_KEY, token); // Save token
+  }
 
-    static getToken(): string | null {
-        return localStorage.getItem(APP_CONSTANTS.TOKEN_KEY); // Retrieve saved token
-    }
+  static getToken(): string | null {
+    return localStorage.getItem(APP_CONSTANTS.TOKEN_KEY); // Retrieve saved token
+  }
 
-    static getUsername(): string | null {
-        return AuthService.username; // Retrieve static username
-    }
+  static getUsername(): string | null {
+    return AuthService.username; // Retrieve static username
+  }
 
-    static logout(): void {
-        AuthService.username = null; // Clear static username
-        localStorage.removeItem(APP_CONSTANTS.TOKEN_KEY); // Remove token
-    }
+    
+  static removeToken(): void {        
+    localStorage.removeItem(APP_CONSTANTS.TOKEN_KEY); // 토큰 삭제
+  }
+  static saveId(user_id: string): void {
+    localStorage.setItem(APP_CONSTANTS.USER_ID, user_id);
+  }
+  static logout(): void {
+    AuthService.username = null; // Clear static username
+    localStorage.removeItem(APP_CONSTANTS.TOKEN_KEY); // Remove token
+  }
+  static getId(): string | null {
+    return localStorage.getItem(APP_CONSTANTS.USER_ID);
+  }
 }

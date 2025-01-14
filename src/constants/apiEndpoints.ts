@@ -8,6 +8,7 @@ export const API_ENDPOINTS = {
     LOGOUT: '/api/auth/logout',
     SIGNIN: '/api/auth/google-login',
     RAG_QUERY: "/api/rag/query",
+    CHAT: '/api/chat',
     UPLOAD_FILE: '/api/files/upload',
     LIST_FILES: '/api/files/list_files',
     DELETE_FILE: '/api/files/delete'
