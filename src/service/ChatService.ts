@@ -1,6 +1,4 @@
-import { modelDetails, OpenAIModel, ModelDetails } from "../models/model";
-import { ChatCompletion, ChatCompletionMessage, ChatCompletionRequest, ChatMessage, ChatMessagePart, Role } from "../models/ChatCompletion";
-import { OPENAI_API_KEY } from "../config";
+import { ChatMessage, Role, MessageType } from "../models/ChatCompletion";
 import { CustomError } from "./CustomError";
 import { CHAT_COMPLETIONS_ENDPOINT, MODELS_ENDPOINT } from "../constants/apiEndpoints";
 import { CHAT_STREAM_DEBOUNCE_TIME } from "../constants/appConstants";
@@ -80,24 +78,22 @@ export class ChatService {
       if (this.callDeferred !== null) {
         clearTimeout(this.callDeferred);
       }
-
-      this.callDeferred = window.setTimeout(() => {
-        callback(this.accumulatedContent); // Pass the accumulated content to the original callback
-        this.lastCallbackTime = Date.now();
-        this.accumulatedContent = ""; // Reset the accumulated content after the callback is called
-      }, delay - timeSinceLastCall < 0 ? 0 : delay - timeSinceLastCall);  // Ensure non-negative delay
-
-      this.lastCallbackTime = timeSinceLastCall < delay ? this.lastCallbackTime : now; // Update last callback time if not within delay
-    };
+ 
+      const data = await response.json(); // { answer: string } 형태의 응답
+      return data;
+    } catch (error) {
+      console.error("Error during sendMessage request:", error);
+      throw new CustomError("Failed to send message to backend API.", error);
+    }
   }
-
-  static async sendMessageStreamed(modelId: string, messages: ChatMessage[], callback: (content: string) => void): Promise<any> {
-    const debouncedCallback = this.debounceCallback(callback);
-    this.abortController = new AbortController();
-    let endpoint = CHAT_COMPLETIONS_ENDPOINT;
-    let headers = {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${OPENAI_API_KEY}`
+ 
+  static async sendMessageStreamed(
+    userId: string,
+    messages: ChatMessage[],
+    callback: (content: string) => void
+  ): Promise<void> {
+    const requestBody = {
+      question: messages[messages.length - 1].content,
     };
 
     const requestBody: ChatCompletionRequest = {
@@ -110,115 +106,51 @@ export class ChatService {
 
     let response: Response;
     try {
-      response = await fetch(endpoint, {
+      const response = await fetch(`http://127.0.0.1:5000/api/chat/${userId}`, {
         method: "POST",
-        headers: headers,
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(requestBody),
-        signal: this.abortController.signal
+        signal: abortController.signal, // 요청 중단을 위한 signal 추가
       });
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        NotificationService.handleUnexpectedError(error, 'Stream reading was aborted.');
-      } else if (error instanceof Error) {
-        NotificationService.handleUnexpectedError(error, 'Error reading streamed response.');
-      } else {
-        console.error('An unexpected error occurred');
+ 
+      if (!response.ok) {
+        const err = await response.json();
+        throw new CustomError(err.error.message, err);
       }
-      return;
-    }
-
-    if (!response.ok) {
-      const err = await response.json();
-      throw new CustomError(err.error.message, err);
-    }
-
-    if (this.abortController.signal.aborted) {
-      // todo: propagate to ui?
-      console.log('Stream aborted');
-      return; // Early return if the fetch was aborted
-    }
-
-    if (response.body) {
-      // Read the response as a stream of data
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-
-      let partialDecodedChunk = undefined;
-      try {
+ 
+      if (response.body) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder("utf-8");
+ 
+        let partialDecodedChunk = "";
+ 
         while (true) {
-          const streamChunk = await reader.read();
-          const { done, value } = streamChunk;
-          if (done) {
-            break;
-          }
-          let DONE = false;
+          const { done, value } = await reader.read();
+          if (done) break;
+ 
           let decodedChunk = decoder.decode(value);
           if (partialDecodedChunk) {
-            decodedChunk = "data: " + partialDecodedChunk + decodedChunk;
-            partialDecodedChunk = undefined;
+            decodedChunk = partialDecodedChunk + decodedChunk;
+            partialDecodedChunk = "";
           }
-          const rawData = decodedChunk.split("data: ").filter(Boolean);  // Split on "data: " and remove any empty strings
-          const chunks: CompletionChunk[] = rawData.map((chunk, index) => {
-            partialDecodedChunk = undefined;
-            chunk = chunk.trim();
-            if (chunk.length == 0) {
-              return;
-            }
-            if (chunk === '[DONE]') {
-              DONE = true;
-              return;
-            }
-            let o;
-            try {
-              o = JSON.parse(chunk);
-            } catch (err) {
-              if (index === rawData.length - 1) { // Check if this is the last element
-                partialDecodedChunk = chunk;
-              } else if (err instanceof Error) {
-                console.error(err.message);
-              }
-            }
-            return o;
-          }).filter(Boolean); // Filter out undefined values which may be a result of the [DONE] term check
-
-          let accumulatedContent = '';
-          chunks.forEach(chunk => {
-            chunk.choices.forEach(choice => {
-              if (choice.delta && choice.delta.content) {  // Check if delta and content exist
-                const content = choice.delta.content;
-                try {
-                  accumulatedContent += content;
-                } catch (err) {
-                  if (err instanceof Error) {
-                    console.error(err.message);
-                  }
-                  console.log('error in client. continuing...')
-                }
-              } else if (choice?.finish_reason === 'stop') {
-                // done
-              }
-            });
-          });
-          debouncedCallback(accumulatedContent);
-
-          if (DONE) {
-            return;
-          }
+ 
+          if (decodedChunk.includes("[DONE]")) break;
+ 
+          callback(decodedChunk.trim()); // 실시간으로 스트리밍된 데이터 전달
         }
-      } catch (error) {
-        if (error instanceof Error && error.name === 'AbortError') {
-          // User aborted the stream, so no need to propagate an error.
-        } else if (error instanceof Error) {
-          NotificationService.handleUnexpectedError(error, 'Error reading streamed response.');
-        } else {
-          console.error('An unexpected error occurred');
-        }
-        return;
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        console.warn("Stream request was aborted.");
+      } else {
+        console.error("Error during streamed response:", error);
       }
     }
   }
-
-  static cancelStream = (): void => {
+ 
+  static cancelStream(): void {
     if (this.abortController) {
       this.abortController.abort();
       this.abortController = null;
