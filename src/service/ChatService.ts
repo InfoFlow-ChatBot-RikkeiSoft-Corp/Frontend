@@ -1,27 +1,82 @@
 import { ChatMessage, Role, MessageType } from "../models/ChatCompletion";
 import { CustomError } from "./CustomError";
- 
+import { CHAT_COMPLETIONS_ENDPOINT, MODELS_ENDPOINT } from "../constants/apiEndpoints";
+import { CHAT_STREAM_DEBOUNCE_TIME } from "../constants/appConstants";
+import { NotificationService } from './NotificationService';
+// Removed import for FileData and FileDataRef
+
+interface CompletionChunk {
+  id: string;
+  object: string;
+  created: number;
+  choices: CompletionChunkChoice[];
+}
+
+interface CompletionChunkChoice {
+  index: number;
+  delta: {
+    content: string;
+  };
+  finish_reason: null | string; // If there can be other values than 'null', use appropriate type instead of string.
+}
+
 export class ChatService {
-    private static abortController: AbortController | null = null; // AbortController 추가
- 
-    static async sendMessage(userId: string, messages: ChatMessage[]): Promise<{ answer: string }> {
-        const lastMessage = messages[messages.length - 1]; // 마지막 메시지를 가져옴 (사용자 질문)
-        const requestBody = {
-        question: lastMessage.content, // 백엔드가 기대하는 필드명
-        };
- 
-    try {
-      const response = await fetch(`http://127.0.0.1:5000/api/chat/${userId}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
- 
-      if (!response.ok) {
-        const err = await response.json();
-        throw new CustomError(err.error.message, err);
+  static abortController: AbortController | null = null;
+
+  static async mapChatMessagesToCompletionMessages(messages: ChatMessage[]): Promise<ChatCompletionMessage[]> {
+
+    return messages.map((message) => {
+      const contentParts: ChatMessagePart[] = [{
+        type: 'text',
+        text: message.content
+      }];
+
+      // Removed logic for handling fileDataRef
+
+      return {
+        role: message.role,
+        content: contentParts,
+      };
+    });
+  }
+
+  static async sendMessage(messages: ChatMessage[]): Promise<ChatCompletion> {
+    let endpoint = 'http://127.0.0.1:api/chat/{userId}';
+    let headers = {
+      "Content-Type": "application/json",
+    };
+
+    const mappedMessages = await ChatService.mapChatMessagesToCompletionMessages(messages);
+
+    const requestBody: ChatCompletionRequest = {
+      messages: mappedMessages,
+    };
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      throw new CustomError(err.error.message, err);
+    }
+
+    return await response.json();
+  }
+
+  private static lastCallbackTime: number = 0;
+  private static callDeferred: number | null = null;
+  private static accumulatedContent: string = ""; // To accumulate content between debounced calls
+
+  static debounceCallback(callback: (content: string) => void, delay: number = CHAT_STREAM_DEBOUNCE_TIME) {
+    return (content: string) => {
+      this.accumulatedContent += content; // Accumulate content on each call
+      const now = Date.now();
+      const timeSinceLastCall = now - this.lastCallbackTime;
+
+      if (this.callDeferred !== null) {
+        clearTimeout(this.callDeferred);
       }
  
       const data = await response.json(); // { answer: string } 형태의 응답
@@ -40,9 +95,16 @@ export class ChatService {
     const requestBody = {
       question: messages[messages.length - 1].content,
     };
- 
-    const abortController = new AbortController(); // 중단 제어를 위한 AbortController
- 
+
+    const requestBody: ChatCompletionRequest = {
+      messages: [],
+      stream: true,
+    };
+
+    const mappedMessages = await ChatService.mapChatMessagesToCompletionMessages(messages);
+    requestBody.messages = mappedMessages;
+
+    let response: Response;
     try {
       const response = await fetch(`http://127.0.0.1:5000/api/chat/${userId}`, {
         method: "POST",
@@ -95,5 +157,3 @@ export class ChatService {
     }
   }
 }
- 
- 
