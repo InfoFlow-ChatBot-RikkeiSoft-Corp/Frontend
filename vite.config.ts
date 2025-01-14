@@ -9,7 +9,6 @@ export default defineConfig({
       '/api': {
         target: 'http://127.0.0.1:5000', // Flask 서버 주소
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
         configure: (proxy) => {
             proxy.on('proxyReq', (proxyReq) => {
               console.log('Proxying request to:', proxyReq.path);

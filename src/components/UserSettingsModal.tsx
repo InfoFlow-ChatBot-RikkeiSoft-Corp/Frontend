@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { Transition } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
 import { API_ENDPOINTS } from '../constants/apiEndpoints';
+import { AuthService } from '../service/AuthService';
 
 interface UserSettingsModalProps {
   isVisible: boolean;
@@ -50,60 +51,69 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   };
 
   const handleFileUpload = async () => {
-    if (!selectedFile) {
-      NotificationService.handleError("No file selected.");
+    const username = AuthService.getUsername();
+    if (!username) {
+      NotificationService.handleError("Username not found. Please log in again.");
       return;
     }
-  
+
+    if (!selectedFile) {
+        NotificationService.handleError("No file selected.");
+        return;
+    }
+
     try {
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-  
-      const response = await fetch(API_ENDPOINTS.UPLOAD_FILE, {
-        method: "POST",
-        body: formData,
-        headers: {
-          username: "gahee.kim@rikkeisoft.com",
-        },
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to upload file.");
-      }
-  
-      const data = await response.json();
-      NotificationService.handleSuccess("File uploaded successfully.");
-      console.log("Uploaded file ID:", data.file_id);
-  
-      // 업로드 후 파일 목록 갱신
-      loadFileList();
+        const formData = new FormData();
+        formData.append("file", selectedFile);
+
+        const response = await fetch(API_ENDPOINTS.UPLOAD_FILE, {
+            method: "POST",
+            body: formData,
+            headers: {
+                username,
+            },
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to upload file.");
+        }
+
+        const data = await response.json();
+        NotificationService.handleSuccess("File uploaded successfully.");
+        console.log("Uploaded file ID:", data.file_id);
+
+        // Refresh file list after upload
+        loadFileList();
     } catch (error) {
-      console.error("Error during file upload:", error);
-      NotificationService.handleUnexpectedError(new Error('Failed to upload file'));
+        console.error("Error during file upload:", error);
+        NotificationService.handleUnexpectedError(new Error("Failed to upload file"));
     }
   };
-  
-  
-  const loadFileList = async () => {
-    try {
-      const response = await fetch(API_ENDPOINTS.LIST_FILES, {
-        method: "GET",
-        headers: {
-          username: "gahee.kim@rikkeisoft.com", 
-        },
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to fetch file list.");
+
+  const loadFileList = () => {
+    const files: Array<{ name: string; type: string; size: number }> = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('uploadedFile_')) {
+        try {
+          const fileInfo = JSON.parse(localStorage.getItem(key) || '{}');
+          if (fileInfo.name && fileInfo.type && fileInfo.size) {
+            files.push({
+              name: fileInfo.name,
+              type: fileInfo.type,
+              size: fileInfo.size,
+            });
+          } else {
+            console.warn(`Invalid file info for key: ${key}`);
+          }
+        } catch (error) {
+          console.error(`Failed to parse file info for key: ${key}`, error);
+        }
       }
-  
-      const data = await response.json();
-      setFileList(data.files || []);
-    } catch (error) {
-      console.error("Error loading file list:", error);
-      NotificationService.handleUnexpectedError(new Error('Failed to load file'));
     }
+    setFileList(files);
   };
+
   
 
   const handleFileDelete = async (fileId: number) => {
