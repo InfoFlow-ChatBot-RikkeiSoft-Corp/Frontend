@@ -229,7 +229,7 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
     }
   
     // RAG 모델로 메시지 스트리밍 전송
-    ChatService.sendMessageStreamed("11", messages, handleStreamedResponse)
+    ChatService.sendMessageStreamed("11", "1", messages, handleStreamedResponse)
       .catch((err) => {
         if (err instanceof CustomError) {
           const message: string = err.message;

@@ -11,10 +11,11 @@ import { APP_CONSTANTS } from "../constants/appConstants";
 export class ChatService {
   static async sendMessageStreamed(
     userId: string,
+    conversationId: string,
     messages: ChatMessage[],
     onStreamedResponse: (response: string) => void
   ): Promise<void> {
-    const url = `http://127.0.0.1:5000/api/chat/${userId}`;
+    const url = `http://127.0.0.1:5000/api/chat/ask`;
     const payload = {
       question: messages[messages.length - 1]?.content || "", // 마지막 메시지의 내용을 요청에 추가
     };
@@ -22,7 +23,11 @@ export class ChatService {
     try {
       const response = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json", // 기본 헤더 설정
+          "conversationId": conversationId, // 예시: 커스텀 헤더 추가 (대화 ID)
+          "userId": userId, // 예시: 사용자 ID 추가
+        },
         body: JSON.stringify(payload),
       });
 
