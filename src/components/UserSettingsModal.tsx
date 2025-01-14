@@ -63,7 +63,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
         method: "POST",
         body: formData,
         headers: {
-          username: "tootsy@gmail.com", // 실제 로그인된 사용자의 username으로 설정
+          username: "gahee.kim@rikkeisoft.com",
         },
       });
   
@@ -83,13 +83,13 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     }
   };
   
-
+  
   const loadFileList = async () => {
     try {
       const response = await fetch(API_ENDPOINTS.LIST_FILES, {
         method: "GET",
         headers: {
-          username: "tootsy@gmail.com", // 실제 로그인된 사용자의 username으로 설정
+          username: "gahee.kim@rikkeisoft.com", 
         },
       });
   
@@ -98,7 +98,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
       }
   
       const data = await response.json();
-      setFileList(data.files || []); // 데이터의 files 배열을 상태로 설정
+      setFileList(data.files || []);
     } catch (error) {
       console.error("Error loading file list:", error);
       NotificationService.handleUnexpectedError(new Error('Failed to load file'));
@@ -111,7 +111,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
       const response = await fetch(`${API_ENDPOINTS.DELETE_FILE}/${fileId}`, {
         method: "DELETE",
         headers: {
-          username: "tootsy@gmail.com", // 실제 로그인된 사용자의 username으로 설정
+          username: "gahee.kim@rikkeisoft.com", // 실제 로그인된 사용자의 username으로 설정
         },
       });
   
