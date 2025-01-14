@@ -97,10 +97,8 @@ class ConversationService {
     }
   }
 
-  static async deleteAllConversations(): Promise<void> {
-    await db.conversations.clear();
-    let event: ConversationChangeEvent = {action: 'delete', id: 0};
-    conversationsEmitter.emit('conversationChangeEvent', event);
+  static async countConversations(): Promise<number> {
+    return db.conversations.count();
   }
 
   static async loadRecentConversationsTitleOnly(): Promise<Conversation[]> {

@@ -1,23 +1,24 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import viteTsconfigPaths from 'vite-tsconfig-paths';
 import svgrPlugin from 'vite-plugin-svgr';
+import { defineConfig } from 'vite';
 
-// https://vitejs.dev/config/
 export default defineConfig({
-    plugins: [react(), viteTsconfigPaths(), svgrPlugin()],
-    server: {
-        open: true,
-        port: 3000,
-        proxy: {
-            '/api': {
-                target: 'http://127.0.0.1:5000', // Flask 서버 주소
-                changeOrigin: true,
-                rewrite: (path) => path.replace(/^\/api/, ''),
-            },
-        },
+  server: {
+    open: true,
+    port: 3000,
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:5000', // Flask 서버 주소
+        changeOrigin: true,
+        configure: (proxy) => {
+            proxy.on('proxyReq', (proxyReq) => {
+              console.log('Proxying request to:', proxyReq.path);
+            });
+          },
+      },
     },
-    build: {
-        chunkSizeWarningLimit: 2000, // in kilobytes
-    },
+  },
+  build: {
+    chunkSizeWarningLimit: 2000, // in kilobytes
+  },
+  plugins: [svgrPlugin()], // 플러그인 추가
 });
