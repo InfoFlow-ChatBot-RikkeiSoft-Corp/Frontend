@@ -75,12 +75,13 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
         });
 
         if (!response.ok) {
-          throw new Error("Failed to upload file.");
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Failed to upload file.");
         }
 
         const data = await response.json();
         NotificationService.handleSuccess("File uploaded successfully.");
-        console.log("Uploaded file ID:", data.file_id);
+        console.log("Uploaded metadata:", data.metadata);
 
         // Refresh file list after upload
         loadFileList();
@@ -90,53 +91,68 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     }
   };
 
-  const loadFileList = () => {
-    const files: Array<{ name: string; type: string; size: number }> = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('uploadedFile_')) {
-        try {
-          const fileInfo = JSON.parse(localStorage.getItem(key) || '{}');
-          if (fileInfo.name && fileInfo.type && fileInfo.size) {
-            files.push({
-              name: fileInfo.name,
-              type: fileInfo.type,
-              size: fileInfo.size,
-            });
-          } else {
-            console.warn(`Invalid file info for key: ${key}`);
-          }
-        } catch (error) {
-          console.error(`Failed to parse file info for key: ${key}`, error);
-        }
-      }
+  const loadFileList = async () => {
+    const username = AuthService.getUsername();
+    if (!username) {
+        NotificationService.handleError("Username not found. Please log in again.");
+        return;
     }
-    setFileList(files);
+
+    try {
+        const response = await fetch(API_ENDPOINTS.LIST_FILES, {
+            method: "GET",
+            headers: {
+                username,
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to fetch file list.");
+        }
+
+        const data = await response.json();
+
+        console.log("Loaded file list:", data.files); // 디버깅
+        setFileList(data.files || []);
+    } catch (error) {
+        console.error("Error loading file list:", error);
+        NotificationService.handleUnexpectedError(new Error("Failed to load file list"));
+    }
   };
 
-  
+
 
   const handleFileDelete = async (fileId: number) => {
     try {
-      const response = await fetch(`${API_ENDPOINTS.DELETE_FILE}/${fileId}`, {
-        method: "DELETE",
-        headers: {
-          username: "gahee.kim@rikkeisoft.com", // 실제 로그인된 사용자의 username으로 설정
-        },
-      });
-  
-      if (!response.ok) {
-        throw new Error("Failed to delete file.");
-      }
-  
-      NotificationService.handleSuccess("File deleted successfully.");
-      // 삭제 후 파일 목록 갱신
-      loadFileList();
+        const username = AuthService.getUsername(); // 인증 사용자 가져오기
+        if (!username) {
+            NotificationService.handleError("Username not found. Please log in again.");
+            return;
+        }
+
+        // DELETE 요청 보내기
+        const response = await fetch(`${API_ENDPOINTS.DELETE_FILE}/${fileId}`, {
+            method: "DELETE",
+            headers: {
+                username, // 사용자 이름 포함
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to delete file.");
+        }
+
+        NotificationService.handleSuccess("File deleted successfully.");
+        loadFileList(); // 파일 목록 새로고침
     } catch (error) {
-      console.error("Error deleting file:", error);
-      NotificationService.handleUnexpectedError(new Error('Failed to delete file'));
+        console.error("Error deleting file:", error);
+        NotificationService.handleUnexpectedError(new Error("Failed to delete file"));
     }
   };
+
+
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -306,7 +322,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                                 <td>{(file.size / 1024).toFixed(2)} KB</td>
                                 <td className="py-2 px-4 text-sm text-gray-900 dark:text-white w-1/4 truncate">
                                   <button
-                                    onClick={() => handleFileDelete(file.name)}
+                                    onClick={() => handleFileDelete(file.id)}
                                     className="py-1 px-2 bg-red-500 text-white rounded hover:bg-red-700"
                                   >
                                     <TrashIcon className="h-4 w-4" aria-hidden="true" />
