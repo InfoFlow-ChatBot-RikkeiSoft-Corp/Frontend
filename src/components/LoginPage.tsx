@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import styles from '../styles/LoginPage.module.css'; // Use CSS modules
+import styles from '../styles/LoginPage.module.css';
+import GoogleButton from 'react-google-button';
 
 interface LoginPageProps {
   setIsAuthenticated: (isAuthenticated: boolean) => void;
@@ -105,6 +106,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
                 <Link to="/signup">Sign up</Link>
               </span>
             </p>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '0%' }}>
+                <GoogleButton
+                    style={{ transform: 'scale(0.8)' }}
+                    onClick={() => { console.log('Google button clicked') }}
+                />
+            </div>
           </div>
         </form>
       </div>
