@@ -232,7 +232,8 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
     // RAG 모델로 메시지 스트리밍 전송
     const user_id = AuthService.getId(); // localStorage에서 user_id 가져오기
     if(user_id){
-      ChatService.sendMessageStreamed(user_id, "1", messages, handleStreamedResponse)
+      console.log(user_id)
+      ChatService.sendMessageStreamed(user_id, "5", messages, handleStreamedResponse)
       .catch((err) => {
         if (err instanceof CustomError) {
           const message: string = err.message;
