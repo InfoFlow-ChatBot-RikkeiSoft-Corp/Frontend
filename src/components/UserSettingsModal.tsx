@@ -35,6 +35,8 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   const [isDragging, setIsDragging] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [preview, setPreview] = useState<string | null>(null);
+  const acceptedFileExtensions = ["txt", "pdf", "doc", "docx"].map(ext => `.${ext}`).join(',');
 
   useEffect(() => {
     if (isVisible) {
@@ -50,9 +52,13 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
     setSelectedFile(file);
+    if (file) {
+      setPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleFileUpload = async () => {
+
     const username = AuthService.getUsername();
     if (!username) {
       NotificationService.handleError("Username not found. Please log in again.");
@@ -93,13 +99,13 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     }
   };
 
+
   const loadFileList = async () => {
     const username = AuthService.getUsername();
     if (!username) {
         NotificationService.handleError("Username not found. Please log in again.");
         return;
     }
-
     try {
         const response = await fetch(API_ENDPOINTS.LIST_FILES, {
             method: "GET",
@@ -157,21 +163,24 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     setIsDragging(true);
   };
 
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
-
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragging(false);
     const file = event.dataTransfer.files[0];
     setSelectedFile(file);
+    if (file) {
+      setPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleLogout = () => {
     // Implement your logout logic here
     console.log('User logged out');
     navigate('/login'); // Redirect to the login page
+  };
+
+  const getFileExtension = (fileName: string) => {
+    return fileName.slice(((fileName.lastIndexOf(".") - 1) >>> 0) + 2);
   };
 
   return (
@@ -259,46 +268,51 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                   </div>
                 )}
                 {activeTab === Tab.STORAGE_TAB && (
-                  <>
-                    <div className="file-upload-box p-4 border-2 border-dashed rounded-lg">
-                      <div
-                        className={`drag-drop-area p-2 border-2 border-dashed rounded-lg ${
-                          isDragging ? 'border-blue-500' : 'border-gray-300'
-                        }`}
-                        onDragOver={handleDragOver}
-                        onDragLeave={handleDragLeave}
-                        onDrop={handleDrop}
-                      >
-                        {selectedFile ? (
-                          <div className="file-info text-center text-gray-700 dark:text-gray-300">
-                            <p>Selected File: {selectedFile.name}</p>
-                            <p>Type: {selectedFile.type}</p>
-                            <p>Size: {(selectedFile.size / 1024).toFixed(2)} KB</p>
+                <>
+                  <div className="container bg-white p-4 rounded-lg shadow-md">
+                    <div className="file-upload-box"
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                    >
+                      {selectedFile && (
+                        <div className="file-preview">
+                          <div className="file-icon">
+                            <div className="circle">
+                              <span className="icon-text">{getFileExtension(selectedFile.name)}</span>
+                            </div>
                           </div>
-                        ) : (
-                          <>
-                            <p className="text-center text-gray-500 dark:text-gray-400">
-                              Drag and drop your files here
-                            </p>
-                            <p className="text-center text-gray-500 dark:text-gray-400">or</p>
-                          </>
-                        )}
-                        <div className="text-center">
-                          <label className="block w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 cursor-pointer dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400">
-                            Choose File
-                            <input type="file" onChange={handleFileSelect} className="hidden" />
-                          </label>
+                          <div className="file-info">
+                            <p className="file-name">{selectedFile.name}</p>
+                            <p className="file-size">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="upload-button-box mt-4 text-center">
-                        <button
-                          onClick={handleFileUpload}
-                          disabled={!selectedFile}
-                          className="block w-full text-sm text-white bg-blue-500 rounded-lg border border-blue-500 cursor-pointer dark:text-white focus:outline-none dark:bg-blue-700 dark:border-blue-700 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          Upload to Storage
-                        </button>
-                      </div>
+                      )}
+                      {!selectedFile && (
+                        <>
+                          <img
+                            src="/files-icon.png"
+                            alt="Upload Icon"
+                            className="w-24 h-24 mb-2"
+                          />
+                          <p className="text-lg font-semibold">Drag and Drop</p>
+                          <p className="or-text">or</p>
+                        </>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement)?.click()}
+                        className="file-upload-box button"
+                      >
+                        Select File
+                      </button>
+                      <input
+                        type="file"
+                        id="file-upload"
+                        name="file-upload"
+                        className="hidden"
+                        onChange={handleFileSelect}
+                        accept={acceptedFileExtensions}
+                      />
                     </div>
                     <div className="mt-4">
                       <h4>Uploaded Files:</h4>
