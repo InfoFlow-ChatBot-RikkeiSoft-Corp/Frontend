@@ -284,15 +284,6 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                   <CircleStackIcon className="w-4 h-4 mr-3" aria-hidden="true" />
                   {t('storage-tab')}
                 </div>
-                <div
-                  className={`cursor-pointer p-4 flex items-center ${
-                    activeTab === Tab.WEBLINK_TAB ? 'bg-gray-200 dark:bg-gray-700' : ''
-                  }`}
-                  onClick={() => setActiveTab(Tab.WEBLINK_TAB)}
-                >
-                  <LinkIcon className="w-4 h-4 mr-3" aria-hidden="true" />
-                  Weblink
-                </div>
                 <div className="logout-button-container">
                   <button onClick={handleLogout} className="logout-button">
                     Logout
@@ -381,12 +372,6 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                       <table>
                         <thead>
                           <tr>
-                            <td
-                              colSpan={5}
-                              className="py-2 px-4 text-sm text-gray-900 text-center"
-                            >
-                              No files found
-                            </td>
                             <th>Name</th>
                             <th>Type</th>
                             <th>Size</th>
@@ -416,11 +401,11 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                                 No files found
                               </td>
                             </tr>
-                        )}
+                          )}
                         </tbody>
                       </table>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
@@ -428,7 +413,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
         </Transition.Child>
       </div>
     </Transition>
-  );  
-};
+  );
+}  
 
 export default UserSettingsModal;
