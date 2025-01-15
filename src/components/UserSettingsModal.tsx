@@ -31,9 +31,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   const { userSettings, setUserSettings } = useContext(UserContext);
   const [activeTab, setActiveTab] = useState<Tab>(Tab.GENERAL_TAB);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileList, setFileList] = useState<Array<{
-    title: ReactI18NextChildren | Iterable<ReactI18NextChildren>; name: string; type: string; size: number 
-}>>([]);
+  const [fileList, setFileList] = useState<Array<{ name: string; type: string; size: number; date: string }>>([]);
   const [isDragging, setIsDragging] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -65,7 +63,6 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   };
 
   const handleFileUpload = async () => {
-
     const username = AuthService.getUsername();
     if (!username) {
       NotificationService.handleError("Username not found. Please log in again.");
@@ -73,95 +70,93 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     }
 
     if (!selectedFile) {
-        NotificationService.handleError("No file selected.");
-        return;
+      NotificationService.handleError("No file selected.");
+      return;
     }
 
     try {
-        const formData = new FormData();
-        formData.append("file", selectedFile);
+      const formData = new FormData();
+      formData.append("file", selectedFile);
 
-        const response = await fetch(API_ENDPOINTS.UPLOAD_FILE, {
-            method: "POST",
-            body: formData,
-            headers: {
-                username,
-            },
-        });
+      const response = await fetch(API_ENDPOINTS.UPLOAD_FILE, {
+        method: "POST",
+        body: formData,
+        headers: {
+          username,
+        },
+      });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Failed to upload file.");
-        }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to upload file.");
+      }
 
-        const data = await response.json();
-        NotificationService.handleSuccess("File uploaded successfully.");
-        console.log("Uploaded metadata:", data.metadata);
+      const data = await response.json();
+      NotificationService.handleSuccess("File uploaded successfully.");
+      console.log("Uploaded metadata:", data.metadata);
 
-        // Refresh file list after upload
-        loadFileList();
+      // Refresh file list after upload
+      loadFileList();
     } catch (error) {
-        console.error("Error during file upload:", error);
-        NotificationService.handleUnexpectedError(new Error("Failed to upload file"));
+      console.error("Error during file upload:", error);
+      NotificationService.handleUnexpectedError(new Error("Failed to upload file"));
     }
   };
-
 
   const loadFileList = async () => {
     const username = AuthService.getUsername();
     if (!username) {
-        NotificationService.handleError("Username not found. Please log in again.");
-        return;
+      NotificationService.handleError("Username not found. Please log in again.");
+      return;
     }
     try {
-        const response = await fetch(API_ENDPOINTS.LIST_FILES, {
-            method: "GET",
-            headers: {
-                username,
-            },
-        });
+      const response = await fetch(API_ENDPOINTS.LIST_FILES, {
+        method: "GET",
+        headers: {
+          username,
+        },
+      });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Failed to fetch file list.");
-        }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch file list.");
+      }
 
-        const data = await response.json();
+      const data = await response.json();
 
-        console.log("Loaded file list from API:", data.files);
-        setFileList(data.files || []);
+      console.log("Loaded file list from API:", data.files);
+      setFileList(data.files || []);
     } catch (error) {
-        console.error("Error loading file list:", error);
-        NotificationService.handleUnexpectedError(new Error("Failed to load file list"));
+      console.error("Error loading file list:", error);
+      NotificationService.handleUnexpectedError(new Error("Failed to load file list"));
     }
   };
 
-
-  const handleFileDelete = async (title: string) => {
+  const handleFileDelete = async (name: string) => {
     try {
-        const username = AuthService.getUsername();
-        if (!username) {
-            NotificationService.handleError("Username not found. Please log in again.");
-            return;
-        }
+      const username = AuthService.getUsername();
+      if (!username) {
+        NotificationService.handleError("Username not found. Please log in again.");
+        return;
+      }
 
-        const response = await fetch(`${API_ENDPOINTS.DELETE_FILE}/${encodeURIComponent(title)}`, {
-            method: "DELETE",
-            headers: {
-                username,
-            },
-        });
+      const response = await fetch(`${API_ENDPOINTS.DELETE_FILE}/${encodeURIComponent(name)}`, {
+        method: "DELETE",
+        headers: {
+          username,
+        },
+      });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Failed to delete file.");
-        }
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete file.");
+      }
 
-        NotificationService.handleSuccess(`File "${title}" deleted successfully.`);
-        loadFileList(); // 파일 목록 새로고침
+      NotificationService.handleSuccess(`File "${name}" deleted successfully.`);
+      loadFileList(); // Refresh file list
     } catch (error) {
-        console.error("Error deleting file:", error);
-        NotificationService.handleUnexpectedError(new Error("Failed to delete file"));
+      console.error("Error deleting file:", error);
+      NotificationService.handleUnexpectedError(new Error("Failed to delete file"));
     }
   };
 
@@ -367,20 +362,83 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                         </>
                       )}
                     </div>
-                    <div className="mt-4">
-                      <h4>Uploaded Files:</h4>
-                      <table>
+                    <div className="save-button-box mt-4 text-center">
+                      <button
+                        onClick={handleFileUpload}
+                        disabled={!selectedFile}
+                        className="save-button-box button"
+                      >
+                        Upload
+                      </button>
+                    </div>
+                  </div>
+                  <div className="table-container">
+                    <table className="table-auto w-full">
+                      <thead>
+                        <tr>
+                          <th>Name</th>
+                          <th>Type</th>
+                          <th>Size</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {fileList.length > 0 ? (
+                          fileList.map((file, index) => (
+                            <tr key={index}>
+                              <td>{file.name}</td>
+                              <td>{file.type}</td>
+                              <td>{(file.size / 1024).toFixed(2)} KB</td>
+                              <td>
+                                <button
+                                  onClick={() => handleFileDelete(file.name)}
+                                  className="py-1 px-2 bg-red-500 text-white rounded hover:bg-red-700"
+                                >
+                                  Delete
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={4} className="text-center">No files found</td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+                {activeTab === Tab.WEBLINK_TAB && (
+                  <div className="flex flex-col h-full w-full p-4 bg-white rounded-lg shadow-md">
+                    <div className="flex items-center space-x-4 mb-4">
+                      <input
+                        type="text"
+                        value={weblink}
+                        onChange={(e) => setWeblink(e.target.value)}
+                        placeholder="Enter weblink"
+                        className="border border-gray-300 rounded p-2 flex-grow text-black"
+                      />
+                      <button
+                        onClick={handleWeblinkUpload}
+                        className="upload-button"
+                      >
+                        Upload
+                      </button>
+                    </div>
+                    <div className="table-container w-full h-full border-gray-300 rounded-lg">
+                      <table className="table-auto w-full h-full">
                         <thead>
                           <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Size</th>
-                            <th>Actions</th>
+                            <th>Weblink</th>
+                            <th>Upload Date</th>
+                            <th></th>
                           </tr>
                         </thead>
                         <tbody>
-                          {fileList.length > 0 ? (
-                            fileList.map((file, index) => (
+                          {weblinkList.length > 0 ? (
+                            weblinkList.map((link, index) => (
+
                               <tr key={index}>
                                 <td>{file.title}</td>
                                 <td>{file.type}</td>
@@ -397,8 +455,12 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                             ))
                           ) : (
                             <tr>
-                              <td colSpan={4} className="text-center">
-                                No files found
+
+                              <td
+                                colSpan={3}
+                                className="centered-text"
+                              >
+                                No weblinks found
                               </td>
                             </tr>
                           )}
