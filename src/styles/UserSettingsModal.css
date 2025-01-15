@@ -159,6 +159,28 @@
   cursor: not-allowed;
 }
 
+/* Upload button */
+.upload-button {
+  padding: 10px 24px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.upload-button:hover {
+  background-color: #2563eb;
+}
+
+.upload-button:disabled {
+  background-color: #3b82f6; /* Disabled state */
+  cursor: not-allowed;
+}
+
 /* Table Container */
 .table-container {
   margin-top: 10px;
