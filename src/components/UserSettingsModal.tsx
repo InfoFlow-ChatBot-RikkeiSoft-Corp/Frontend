@@ -4,6 +4,7 @@ import {
   Cog6ToothIcon,
   XMarkIcon,
   TrashIcon,
+  LinkIcon,
 } from '@heroicons/react/24/outline';
 import { Theme, UserContext } from '../UserContext';
 import '../styles/UserSettingsModal.css';
@@ -22,6 +23,7 @@ interface UserSettingsModalProps {
 enum Tab {
   GENERAL_TAB = 'General',
   STORAGE_TAB = 'Storage',
+  WEBLINK_TAB = 'Weblink',
 }
 
 const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClose }) => {
@@ -38,10 +40,15 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   const [preview, setPreview] = useState<string | null>(null);
   const acceptedFileExtensions = ["txt", "pdf", "doc", "docx"].map(ext => `.${ext}`).join(',');
 
+  // State for weblinks
+  const [weblink, setWeblink] = useState<string>('');
+  const [weblinkList, setWeblinkList] = useState<Array<{ link: string; date: string }>>([]);
+
   useEffect(() => {
     if (isVisible) {
       setActiveTab(Tab.GENERAL_TAB);
       loadFileList();
+      loadWeblinkList();
     }
   }, [isVisible]);
 
@@ -183,6 +190,49 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     return fileName.slice(((fileName.lastIndexOf(".") - 1) >>> 0) + 2);
   };
 
+  // Weblink functions
+  const handleWeblinkUpload = () => {
+    if (weblink) {
+      const weblinkInfo = {
+        link: weblink,
+        date: new Date().toISOString(),
+      };
+      localStorage.setItem(`weblink_${weblink}`, JSON.stringify(weblinkInfo));
+      NotificationService.handleSuccess('Weblink uploaded successfully.');
+      setWeblink('');
+      loadWeblinkList();
+    }
+  };
+
+  const loadWeblinkList = () => {
+    const links: Array<{ link: string; date: string }> = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('weblink_')) {
+        try {
+          const weblinkInfo = JSON.parse(localStorage.getItem(key) || '{}');
+          if (weblinkInfo.link && weblinkInfo.date) {
+            links.push({
+              link: weblinkInfo.link,
+              date: weblinkInfo.date,
+            });
+          } else {
+            console.warn(`Invalid weblink info for key: ${key}`);
+          }
+        } catch (error) {
+          console.error(`Failed to parse weblink info for key: ${key}`, error);
+        }
+      }
+    }
+    setWeblinkList(links);
+  };
+
+  const handleWeblinkDelete = (link: string) => {
+    localStorage.removeItem(`weblink_${link}`);
+    NotificationService.handleSuccess('Weblink deleted successfully.');
+    loadWeblinkList();
+  };
+
   return (
     <Transition show={isVisible} as={React.Fragment}>
       <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 px-4">
@@ -233,6 +283,15 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                 >
                   <CircleStackIcon className="w-4 h-4 mr-3" aria-hidden="true" />
                   {t('storage-tab')}
+                </div>
+                <div
+                  className={`cursor-pointer p-4 flex items-center ${
+                    activeTab === Tab.WEBLINK_TAB ? 'bg-gray-200 dark:bg-gray-700' : ''
+                  }`}
+                  onClick={() => setActiveTab(Tab.WEBLINK_TAB)}
+                >
+                  <LinkIcon className="w-4 h-4 mr-3" aria-hidden="true" />
+                  Weblink
                 </div>
                 <div className="logout-button-container">
                   <button onClick={handleLogout} className="logout-button">
@@ -322,6 +381,12 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                       <table>
                         <thead>
                           <tr>
+                            <td
+                              colSpan={5}
+                              className="py-2 px-4 text-sm text-gray-900 text-center"
+                            >
+                              No files found
+                            </td>
                             <th>Name</th>
                             <th>Type</th>
                             <th>Size</th>
@@ -351,11 +416,11 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                                 No files found
                               </td>
                             </tr>
-                          )}
+                        )}
                         </tbody>
                       </table>
                     </div>
-                  </div>
+                  </>
                 )}
               </div>
             </div>
