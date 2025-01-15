@@ -44,7 +44,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
       if (values.email === 'admin@example.com' && values.pass === 'password') {
         setSubmitButtonDisabled(false);
         setIsAuthenticated(true);
-        navigate('/');
+        navigate('/main');
       } else {
         setSubmitButtonDisabled(false);
         setErrorMsg('Invalid credentials. Please try again.');
