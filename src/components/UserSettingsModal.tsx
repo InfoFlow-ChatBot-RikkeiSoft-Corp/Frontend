@@ -362,83 +362,20 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                         </>
                       )}
                     </div>
-                    <div className="save-button-box mt-4 text-center">
-                      <button
-                        onClick={handleFileUpload}
-                        disabled={!selectedFile}
-                        className="save-button-box button"
-                      >
-                        Upload
-                      </button>
-                    </div>
-                  </div>
-                  <div className="table-container">
-                    <table className="table-auto w-full">
-                      <thead>
-                        <tr>
-                          <th>Name</th>
-                          <th>Type</th>
-                          <th>Size</th>
-                          <th>Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {fileList.length > 0 ? (
-                          fileList.map((file, index) => (
-                            <tr key={index}>
-                              <td>{file.name}</td>
-                              <td>{file.type}</td>
-                              <td>{(file.size / 1024).toFixed(2)} KB</td>
-                              <td>
-                                <button
-                                  onClick={() => handleFileDelete(file.name)}
-                                  className="py-1 px-2 bg-red-500 text-white rounded hover:bg-red-700"
-                                >
-                                  Delete
-                                </button>
-                              </td>
-                            </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td colSpan={4} className="text-center">No files found</td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
-              )}
-                {activeTab === Tab.WEBLINK_TAB && (
-                  <div className="flex flex-col h-full w-full p-4 bg-white rounded-lg shadow-md">
-                    <div className="flex items-center space-x-4 mb-4">
-                      <input
-                        type="text"
-                        value={weblink}
-                        onChange={(e) => setWeblink(e.target.value)}
-                        placeholder="Enter weblink"
-                        className="border border-gray-300 rounded p-2 flex-grow text-black"
-                      />
-                      <button
-                        onClick={handleWeblinkUpload}
-                        className="upload-button"
-                      >
-                        Upload
-                      </button>
-                    </div>
-                    <div className="table-container w-full h-full border-gray-300 rounded-lg">
-                      <table className="table-auto w-full h-full">
+                    <div className="mt-4">
+                      <h4>Uploaded Files:</h4>
+                      <table>
                         <thead>
                           <tr>
-                            <th>Weblink</th>
-                            <th>Upload Date</th>
-                            <th></th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Size</th>
+                            <th>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
-                          {weblinkList.length > 0 ? (
-                            weblinkList.map((link, index) => (
-
+                          {fileList.length > 0 ? (
+                            fileList.map((file, index) => (
                               <tr key={index}>
                                 <td>{file.title}</td>
                                 <td>{file.type}</td>
@@ -455,12 +392,8 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                             ))
                           ) : (
                             <tr>
-
-                              <td
-                                colSpan={3}
-                                className="centered-text"
-                              >
-                                No weblinks found
+                              <td colSpan={4} className="text-center">
+                                No files found
                               </td>
                             </tr>
                           )}
