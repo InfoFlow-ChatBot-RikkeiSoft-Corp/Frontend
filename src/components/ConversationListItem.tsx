@@ -13,11 +13,11 @@ interface ConversationListItemProps {
 }
 
 const ConversationListItem: React.FC<ConversationListItemProps> = ({
-                                                                     convo,
-                                                                     isSelected,
-                                                                     loadConversations,
-                                                                     setSelectedId
-                                                                   }) => {
+  convo,
+  isSelected,
+  loadConversations,
+  setSelectedId
+}) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(convo.title);
   const navigate = useNavigate();
@@ -27,7 +27,7 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
     ConversationService.updateConversationPartial(convo, {title: editedTitle})
       .then(() => {
         setIsEditingTitle(false);
-        loadConversations(); // Reload conversations to reflect the updated title
+        loadConversations();
       })
       .catch((error) => {
         console.error('Error updating conversation title:', error);
@@ -36,25 +36,15 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
 
   const deleteConversation = () => {
     ConversationService.deleteConversation(convo.id)
-      .then(async () => {
-        loadConversations(); // Reload conversations to reflect the deletion
-        const remainingConversations = await ConversationService.countConversations();
-        if (remainingConversations === 0) {
-            navigate('/', {state: {reset: Date.now()}}); // Redirect to the home page if there are no conversations left
-        }})
+      .then(() => {
+        loadConversations();
+      })
       .catch((error) => {
         console.error('Error deleting conversation:', error);
       });
   };
 
   const selectConversation = () => {
-    if (isEditingTitle) {
-      // If in edit mode, cancel edit mode and select the new conversation
-      setIsEditingTitle(false);
-      setEditedTitle(''); // Clear editedTitle
-    } else {
-      // If not in edit mode, simply select the conversation
-    }
     setSelectedId(convo.id);
     if (!isEditingTitle) {
       const url = convo.gid ? `/g/${convo.gid}/c/${convo.id}` : `/c/${convo.id}`;
@@ -62,93 +52,77 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
     }
   };
 
-  const toggleEditMode = (convo: Conversation) => {
+  const toggleEditMode = () => {
     if (!isEditingTitle) {
-      // Entering edit mode, initialize editedTitle with convo.title
+      // Entering edit mode
       setEditedTitle(convo.title);
     } else {
-      // Exiting edit mode, clear editedTitle
+      // Exiting edit mode
       setEditedTitle('');
     }
     setIsEditingTitle(!isEditingTitle);
   };
 
-  const handleTitleInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>, conversation: Conversation) => {
+  const handleTitleInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      // Save the edited title when Enter key is pressed
       saveEditedTitle();
     } else if (e.key === 'Escape') {
       setIsEditingTitle(false);
+      setEditedTitle(convo.title);
     }
   };
 
-  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>, conversation: Conversation) => {
-    if (acceptButtonRef.current) {
-      saveEditedTitle();
-    }
-    // Check if the blur event was not caused by pressing the Enter key
-    // If in edit mode and the input loses focus, cancel the edit
-    setEditedTitle(conversation.title);
+  const handleInputBlur = () => {
+    // Decide if you want to auto-save on blur or revert
+    // For now, let's revert the changes if user clicks away
     setIsEditingTitle(false);
+    setEditedTitle(convo.title);
   };
 
-  const handleContextMenu = (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    setIsEditingTitle(false);
-  };
-
+  // Render: selected = different styling
   if (isSelected) {
     return (
       <li key={convo.id} className="relative z-[15]" style={{opacity: 1, height: "auto"}}>
         <div
           role="button"
-          className={`relative flex py-3 px-3 items-center gap-3 rounded-md bg-gray-100 dark:bg-gray-800 cursor-pointer break-all pr-14 group`}
+          className="relative flex py-3 px-3 items-center gap-3 rounded-md bg-gray-100 dark:bg-gray-800 cursor-pointer break-all pr-14 group"
         >
           <ChatBubbleLeftIcon {...iconProps} />
           {isEditingTitle ? (
-            <div
-              className={"flex items-center gap-3"}>
+            <div className="flex items-center gap-3">
               <input
                 type="text"
-                className={'dark:bg-gray-800 dark:text-gray-100'}
+                className="dark:bg-gray-800 dark:text-gray-100"
                 value={editedTitle}
                 onChange={(e) => setEditedTitle(e.target.value)}
-                onKeyDown={(e) => handleTitleInputKeyPress(e, convo)}
-                autoFocus={true}
+                onKeyDown={handleTitleInputKeyPress}
+                autoFocus
                 maxLength={MAX_TITLE_LENGTH}
                 style={{width: "10em"}}
-                onBlur={(e) => {
-                  if (isEditingTitle) {
-                    handleInputBlur(e, convo);
-                  }
-                }}
+                onBlur={handleInputBlur}
               />
             </div>
           ) : (
-            <div
-              className="relative flex-1 w-full text-left overflow-hidden whitespace-nowrap overflow-ellipsis max-h-5 break-all">
+            <div className="relative flex-1 w-full text-left overflow-hidden whitespace-nowrap overflow-ellipsis max-h-5 break-all">
               {convo.title}
             </div>
           )}
-          <div
-            className="absolute flex right-1 z-10 dark:text-gray-300 text-gray-800">
+          <div className="absolute flex right-1 z-10 dark:text-gray-300 text-gray-800">
             {isEditingTitle ? (
               <>
                 <button
                   ref={acceptButtonRef}
-                  onClick={() => {
-                    saveEditedTitle()
-                  }}
-                  className={`p-1 hover:text-gray-400 dark:hover:text-white`}
-                  onContextMenu={handleContextMenu}
+                  onClick={saveEditedTitle}
+                  className="p-1 hover:text-gray-400 dark:hover:text-white"
                 >
                   <CheckIcon {...iconProps} />
                 </button>
                 <button
                   onClick={() => {
-                    setIsEditingTitle(false); // Exit edit mode without saving
-                    setEditedTitle(""); // Clear the edited title
+                    setIsEditingTitle(false);
+                    setEditedTitle(convo.title);
                   }}
-                  className={`p-1 hover:text-gray-400 dark:hover:text-white`}
+                  className="p-1 hover:text-gray-400 dark:hover:text-white"
                 >
                   <XMarkIcon {...iconProps} />
                 </button>
@@ -156,13 +130,13 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
             ) : (
               <>
                 <button
-                  onClick={() => toggleEditMode(convo)}
-                  className={`p-1 hover:text-gray-400 dark:hover:text-white`}
+                  onClick={toggleEditMode}
+                  className="p-1 hover:text-gray-400 dark:hover:text-white"
                 >
                   <PencilSquareIcon {...iconProps} />
                 </button>
                 <button
-                  onClick={() => deleteConversation()}
+                  onClick={deleteConversation}
                   className="p-1 hover:text-gray-400 dark:hover:text-white"
                 >
                   <TrashIcon {...iconProps} />
@@ -177,19 +151,18 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
     return (
       <li key={convo.id} className="relative z-[15]" style={{opacity: 1, height: "auto"}}>
         <button
-          onClick={() => selectConversation()}
+          onClick={selectConversation}
           type="button"
           className="relative flex w-full py-3 px-3 items-center gap-3 bg-gray-50 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-850 rounded-md cursor-pointer break-all"
         >
           <ChatBubbleLeftIcon {...iconProps} />
-          <div
-            className="relative flex-1 overflow-hidden text-left whitespace-nowrap overflow-ellipsis max-h-5 break-all">
+          <div className="relative flex-1 overflow-hidden text-left whitespace-nowrap overflow-ellipsis max-h-5 break-all">
             {convo.title}
           </div>
         </button>
       </li>
     );
   }
-}
+};
 
 export default ConversationListItem;
