@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import styles from '../styles/LoginPage.module.css'; // Use CSS modules
 
 interface LoginPageProps {
@@ -7,60 +7,106 @@ interface LoginPageProps {
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [values, setValues] = useState({ email: '', pass: '' });
+  const [errorMsg, setErrorMsg] = useState('');
+  const [submitButtonDisabled, setSubmitButtonDisabled] = useState(false);
   const navigate = useNavigate();
+  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleSubmission = (e: React.FormEvent) => {
     e.preventDefault();
-    // Basic authentication logic
-    if (username === 'admin' && password === 'password') {
-      setIsAuthenticated(true);
-      navigate('/'); // Redirect to the main page
-    } else {
-      alert('Invalid credentials. Please try again.');
+
+    if (!values.email || !values.pass) {
+      setErrorMsg('Please fill all fields');
+      setTimeout(() => {
+        setErrorMsg('');
+      }, 3000);
+      return;
+    } else if (!regex.test(values.email)) {
+      setErrorMsg('Enter a valid email');
+      setTimeout(() => {
+        setErrorMsg('');
+      }, 3000);
+      return;
+    } else if (values.pass.length < 6) {
+      setErrorMsg('Password should have minimum six characters');
+      setTimeout(() => {
+        setErrorMsg('');
+      }, 3000);
+      return;
     }
+
+    setErrorMsg('');
+    setSubmitButtonDisabled(true);
+
+    // Simulate authentication logic
+    setTimeout(() => {
+      if (values.email === 'admin@example.com' && values.pass === 'password') {
+        setSubmitButtonDisabled(false);
+        setIsAuthenticated(true);
+        navigate('/main');
+      } else {
+        setSubmitButtonDisabled(false);
+        setErrorMsg('Invalid credentials. Please try again.');
+        setValues({ email: '', pass: '' });
+        setTimeout(() => {
+          setErrorMsg('');
+        }, 3000);
+      }
+    }, 1000);
   };
 
-  const handleGoogleLogin = () => {
-    // Redirect to Google's login page
-    window.location.href = 'https://accounts.google.com/signin';
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setValues((prevValues) => ({
+      ...prevValues,
+      [id]: value,
+    }));
   };
 
   return (
-    <div className={styles.loginPage}>
-      <div className={styles.loginContainer}>
-        <img src="/logo.png" alt="Company Logo" className={styles.logo} />
-        <h1>Welcome to RikkeiSoft!</h1>
-        <p>To continue, kindly log in with your account.</p>
-        <form onSubmit={handleLogin} className={styles.loginForm}>
-          <div className={styles.formGroup}>
-            <label htmlFor="username">Username</label>
+    <div className={styles.container}>
+      <div className={styles.innerBox}>
+        <h1 className={styles.heading}>Login</h1>
+        <form onSubmit={handleSubmission}>
+          <div className={styles.Inputcontainer}>
+            <label htmlFor="email">Email</label>
             <input
-              type="text"
-              id="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              type="email"
+              id="email"
+              value={values.email}
+              onChange={handleChange}
+              placeholder="Enter email address"
               required
             />
           </div>
-          <div className={styles.formGroup}>
+          <div className={styles.Inputcontainer}>
             <label htmlFor="password">Password</label>
             <input
               type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              id="pass"
+              value={values.pass}
+              onChange={handleChange}
+              placeholder="Enter Password"
               required
             />
           </div>
-          <button type="submit" className={styles.loginButton}>
-            Log In
-          </button>
+          <div className={styles.footer}>
+            <b className={styles.error}>{errorMsg}</b>
+            <button
+              type="submit"
+              disabled={submitButtonDisabled}
+            >
+              Login
+            </button>
+            <p>
+              Don't have an account?{' '}
+              <span>
+                <Link to="/signup">Sign up</Link>
+              </span>
+            </p>
+          </div>
         </form>
-        <button onClick={handleGoogleLogin} className={styles.googleButton}>
-          <img src="/google-login.png" alt="Login with Google" className={styles.googleImage} />
-        </button>
       </div>
     </div>
   );

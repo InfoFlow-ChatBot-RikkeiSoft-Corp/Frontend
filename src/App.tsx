@@ -3,6 +3,8 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import Sidebar from './components/SideBar';
 import MainPage from './components/MainPage';
 import LoginPage from './components/LoginPage';
+import SignUpPage from './components/SignUpPage';
+import Homepage from './components/homepage';
 import './App.css';
 import { ToastContainer } from 'react-toastify';
 
@@ -19,15 +21,24 @@ const App: React.FC = () => {
       <div className="App dark:bg-gray-900 dark:text-gray-100">
         <ToastContainer />
         <Routes>
+          {/* Home Page */}
+          <Route path="/" element={<Homepage />} />
+
           {/* Login Page */}
           <Route
             path="/login"
             element={<LoginPage setIsAuthenticated={setIsAuthenticated} />}
           />
 
+          {/* Sign Up Page */}
+          <Route
+            path="/signup"
+            element={<SignUpPage />}
+          />
+
           {/* Protected Routes */}
           <Route
-            path="/"
+            path="/main"
             element={
               isAuthenticated ? (
                 <div className="flex">
@@ -72,7 +83,7 @@ const App: React.FC = () => {
 
           <Route
             path="*"
-            element={<Navigate to="/login" replace />}
+            element={<Navigate to="/" replace />}
           />
         </Routes>
       </div>

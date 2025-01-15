@@ -1,86 +1,151 @@
-/* LoginPage.module.css */
-.loginPage {
+/* 
+font-family: 'Castoro', serif;
+font-family: 'Chakra Petch', sans-serif;
+font-family: 'Orbitron', sans-serif;
+font-family: 'Ubuntu Mono', monospace; 
+*/
+
+.container {
+  height: 100%;
+  min-height: 100vh;
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  background-color: #f0f2f5;
+  background-image: url(../../assets/background3.jpg);
+  background-size: cover;
 }
 
-.loginContainer {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  width: 350px;
-}
-
-.logo {
-  width: 100px;
-  margin-bottom: 20px;
-}
-
-h1 {
-  font-size: 24px;
+/* Input field */
+.Inputcontainer {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
   margin-bottom: 10px;
-  color: #222;
 }
 
-p {
-  font-size: 14px;
-  color: #666;
-  margin-bottom: 20px;
+label {
+  font-weight: 500;
+  font-size: 1rem;
+  font-family: 'Orbitron', sans-serif !important;
+  color: black; /* Set text color to black */
 }
 
-.loginForm {
-  text-align: left;
-}
-
-.formGroup {
-  margin-bottom: 1rem;
-}
-
-.formGroup label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #444;
-}
-
-.formGroup input {
-  width: 100%;
-  padding: 0.5rem;
+input {
+  font-family: 'Chakra Petch', sans-serif !important;
+  font-weight: 500;
   border: 1px solid #ccc;
-  border-radius: 4px;
-  color: #333;
+  outline: none;
+  padding: 10px 12px;
+  font-size: 1rem;
+  border-radius: 5px;
+  background: #edf2f7;
+  transition: background 0.3s, border 0.3s;
+  color: black; /* Set text color to black */
 }
 
-.loginButton {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #333;
-  color: white;
+::placeholder {
+  color: #a7abb7;
+  font-family: 'Chakra Petch', sans-serif !important;
+}
+  
+input:hover {
+    background: #d8e0e8;
+}
+  
+input:focus {
+    background: #fff;
+    border: 2px solid #046cf1;
+}
+
+.heading {
+  font-weight: 500;
+  font-size: 2.1rem;
+  font-family: "Archivo", sans-serif;
+  color: #2a2a2a;
+}
+
+.innerBox {
+  min-width: 480px;
+  height: fit-content;
+  width: fit-content;
+  background-color: #fff;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
+  padding: 30px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  font-family: "Orbitron", sans-serif;
+}
+
+.footer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.footer .error {
+  font-weight: bold;
+  font-size: 0.875rem;
+  color: #ff3300;
+  text-align: center;
+}
+
+.footer button {
+  outline: none;
   border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.loginButton:hover {
-  background-color: #555;
-}
-
-.googleButton {
+  background-color: #046cf1;
+  color: #fff;
+  border-radius: 5px;
+  font-weight: bold;
+  font-size: 1rem;
+  padding: 10px 16px;
   width: 100%;
-  height: auto;
-  padding: 0.75rem;
-  background-color: transparent;
-  border: none;
+  transition: 100ms;
   cursor: pointer;
-  margin-top: 1rem;
+  font-family: 'Orbitron', sans-serif;
 }
 
-.googleImage {
-  width: auto;
-  height: auto;
+.footer button:disabled {
+  background-color: gray !important;
+}
+
+.footer button:hover {
+  background-color: #0d4ad9;
+}
+
+.footer p {
+  font-weight: 700;
+  color: #000;
+}
+
+.footer p span a {
+  font-weight: bold;
+  color: #046cf1;
+  letter-spacing: 1px;
+  font-size: 1rem;
+  text-decoration: none;
+}
+
+@media only screen and (min-width: 500px) and (max-width: 599px) {
+  .innerBox {
+    min-width: 420px;
+  }
+}
+
+@media only screen and (min-width: 400px) and (max-width: 499px) {
+  .innerBox {
+    min-width: 360px;
+  }
+}
+
+@media only screen and (min-width: 200px) and (max-width: 399px) {
+  .container {
+    padding: 15px;
+  }
+  .innerBox {
+    min-width: auto;
+    font-size: small;
+  }
 }
