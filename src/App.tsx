@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import Sidebar from './components/SideBar';
 import MainPage from './components/MainPage';
 import LoginPage from './components/LoginPage';
+import SignUpPage from './components/SignUpPage';
 import './App.css';
 import { ToastContainer } from 'react-toastify';
 
@@ -14,6 +15,8 @@ const App: React.FC = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
+  //Inflow chat
+
   return (
     <BrowserRouter>
       <div className="App dark:bg-gray-900 dark:text-gray-100">
@@ -23,6 +26,12 @@ const App: React.FC = () => {
           <Route
             path="/login"
             element={<LoginPage setIsAuthenticated={setIsAuthenticated} />}
+          />
+
+          {/* Sign Up Page */}
+          <Route
+            path="/signup"
+            element={<SignUpPage />}
           />
 
           {/* Protected Routes */}
