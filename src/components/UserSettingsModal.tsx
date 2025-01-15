@@ -235,10 +235,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                   {t('storage-tab')}
                 </div>
                 <div className="logout-button-container">
-                  <button
-                    onClick={handleLogout}
-                    className="logout-button"
-                  >
+                  <button onClick={handleLogout} className="logout-button">
                     Logout
                   </button>
                 </div>
@@ -253,12 +250,12 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                         name="theme"
                         className="custom-select dark:custom-select border-gray-300 border rounded p-2 dark:bg-gray-800 dark:text-white dark:border-gray-600"
                         value={userSettings.userTheme}
-                        onChange={(e) => {
+                        onChange={(e) =>
                           setUserSettings({
                             ...userSettings,
                             userTheme: e.target.value as Theme,
-                          });
-                        }}
+                          })
+                        }
                       >
                         <option value="dark">{t('dark-option')}</option>
                         <option value="light">{t('light-option')}</option>
@@ -268,9 +265,9 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                   </div>
                 )}
                 {activeTab === Tab.STORAGE_TAB && (
-                <>
                   <div className="container bg-white p-4 rounded-lg shadow-md">
-                    <div className="file-upload-box"
+                    <div
+                      className="file-upload-box"
                       onDragOver={handleDragOver}
                       onDrop={handleDrop}
                     >
@@ -283,7 +280,9 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                           </div>
                           <div className="file-info">
                             <p className="file-name">{selectedFile.name}</p>
-                            <p className="file-size">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+                            <p className="file-size">
+                              {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                            </p>
                           </div>
                         </div>
                       )}
@@ -296,23 +295,27 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                           />
                           <p className="text-lg font-semibold">Drag and Drop</p>
                           <p className="or-text">or</p>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              (
+                                document.querySelector('input[type="file"]') as HTMLInputElement
+                              )?.click()
+                            }
+                            className="file-upload-box button"
+                          >
+                            Select File
+                          </button>
+                          <input
+                            type="file"
+                            id="file-upload"
+                            name="file-upload"
+                            className="hidden"
+                            onChange={handleFileSelect}
+                            accept={acceptedFileExtensions}
+                          />
                         </>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement)?.click()}
-                        className="file-upload-box button"
-                      >
-                        Select File
-                      </button>
-                      <input
-                        type="file"
-                        id="file-upload"
-                        name="file-upload"
-                        className="hidden"
-                        onChange={handleFileSelect}
-                        accept={acceptedFileExtensions}
-                      />
                     </div>
                     <div className="mt-4">
                       <h4>Uploaded Files:</h4>
@@ -328,32 +331,31 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                         <tbody>
                           {fileList.length > 0 ? (
                             fileList.map((file, index) => (
-                                <tr key={index}>
-                                    <td>{file.title}</td> {/* title을 사용 */}
-                                    <td>{file.type}</td>
-                                    <td>{(file.size / 1024).toFixed(2)} KB</td>
-                                    <td>
-                                        <button
-                                            onClick={() => {
-                                                console.log("Deleting file with title:", file.title); // title 확인
-                                                handleFileDelete(file.title); // title 기반 삭제 요청
-                                            }}
-                                            className="py-1 px-2 bg-red-500 text-white rounded hover:bg-red-700"
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
-                                </tr>
+                              <tr key={index}>
+                                <td>{file.title}</td>
+                                <td>{file.type}</td>
+                                <td>{(file.size / 1024).toFixed(2)} KB</td>
+                                <td>
+                                  <button
+                                    onClick={() => handleFileDelete(file.title)}
+                                    className="py-1 px-2 bg-red-500 text-white rounded hover:bg-red-700"
+                                  >
+                                    Delete
+                                  </button>
+                                </td>
+                              </tr>
                             ))
-                        ) : (
+                          ) : (
                             <tr>
-                                <td colSpan={4} className="text-center">No files found</td>
+                              <td colSpan={4} className="text-center">
+                                No files found
+                              </td>
                             </tr>
-                        )}
+                          )}
                         </tbody>
                       </table>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
@@ -361,7 +363,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
         </Transition.Child>
       </div>
     </Transition>
-  );
+  );  
 };
 
 export default UserSettingsModal;

@@ -62,6 +62,7 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
   }, []);
 
   useEffect(() => {
+    console.log("Loaded ID:", id);
     if (location.pathname === '/') {
       newConversation();
     } else {
