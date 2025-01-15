@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { ChatService } from "../service/ChatService";
+import { AuthService } from "../service/AuthService";
 import Chat from "./Chat";
 import { ChatCompletion, ChatMessage, MessageType, Role, FileDataRef } from "../models/ChatCompletion";
 import { ScrollToBottomButton } from "./ScrollToBottomButton";
@@ -229,7 +230,9 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
     }
   
     // RAG 모델로 메시지 스트리밍 전송
-    ChatService.sendMessageStreamed("11", "1", messages, handleStreamedResponse)
+    const user_id = AuthService.getId(); // localStorage에서 user_id 가져오기
+    if(user_id){
+      ChatService.sendMessageStreamed(user_id, "1", messages, handleStreamedResponse)
       .catch((err) => {
         if (err instanceof CustomError) {
           const message: string = err.message;
@@ -245,6 +248,10 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
       .finally(() => {
         setLoading(false); // 로딩 상태 종료
       });
+    } else {
+      console.error("User ID not found. Please log in.");
+      setLoading(false);
+    }    
   }
   
   const handleStreamedResponse = (response: string) => {

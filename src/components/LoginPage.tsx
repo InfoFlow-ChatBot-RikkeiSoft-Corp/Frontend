@@ -17,8 +17,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
     e.preventDefault();
     setIsLoading(true); // 로딩 시작
     try {
-      const token = await AuthService.login(username, password); // AuthService 호출
+      const { token, user_id } = await AuthService.login(username, password); // AuthService 호출
       AuthService.saveToken(token); // 토큰 저장
+      AuthService.saveId(user_id);
       setIsAuthenticated(true); // 인증 상태 업데이트
       alert('Login successful!'); // 성공 메시지
       navigate('/'); // 메인 페이지로 리디렉션

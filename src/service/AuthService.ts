@@ -5,13 +5,16 @@ import { API_ENDPOINTS } from "../constants/apiEndpoints";
 import { APP_CONSTANTS } from "../constants/appConstants";
 
 export class AuthService {
-  static async login(username: string, password: string): Promise<string> {
+  static async login(username: string, password: string): Promise<{ token: string; user_id: string }> {
     try {
       const response = await axios.post(
         `${APP_CONSTANTS.BASE_URL}${API_ENDPOINTS.LOGIN}`,
         { username, password }
       );
-      return response.data.token
+      // 응답 데이터에서 token과 user_id 추출
+      const { token, user_id } = response.data;
+
+      return { token, user_id: user_id.toString() }; // 두 개를 객체 형태로 반환
     } catch (error: any) {
       throw new Error(error.response?.data?.error || 'Login failed');
     }
