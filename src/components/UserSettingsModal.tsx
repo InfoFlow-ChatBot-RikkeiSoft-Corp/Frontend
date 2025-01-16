@@ -134,25 +134,33 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   };
 
   const handleFileDelete = async (name: string) => {
+    console.log("Attempting to delete file:", name); // 디버깅 로그 추가
+  
+    if (!name) {
+      console.error("Error: File name is undefined or empty.");
+      NotificationService.handleError("Failed to delete file: Invalid file name.");
+      return;
+    }
+  
     try {
       const username = AuthService.getUsername();
       if (!username) {
         NotificationService.handleError("Username not found. Please log in again.");
         return;
       }
-
+  
       const response = await fetch(`${API_ENDPOINTS.DELETE_FILE}/${encodeURIComponent(name)}`, {
         method: "DELETE",
         headers: {
           username,
         },
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to delete file.");
       }
-
+  
       NotificationService.handleSuccess(`File "${name}" deleted successfully.`);
       loadFileList(); // Refresh file list
     } catch (error) {
@@ -160,7 +168,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
       NotificationService.handleUnexpectedError(new Error("Failed to delete file"));
     }
   };
-
+  
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDragging(true);
