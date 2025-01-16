@@ -259,7 +259,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     <Transition show={isVisible} as={React.Fragment}>
       <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 px-4">
         <Transition.Child
-          as={React.Fragment}
+          as="div"
           enter="ease-out duration-300"
           enterFrom="opacity-0 scale-95"
           enterTo="opacity-100 scale-100"
@@ -439,8 +439,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                       </table>
                     </div>
                   </div>
-                </>
-              )}
+                )}
                 {activeTab === Tab.WEBLINK_TAB && (
                   <div className="flex flex-col h-full w-full p-4 bg-white rounded-lg shadow-md">
                     <div className="flex items-center space-x-4 mb-4">
@@ -508,7 +507,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
         </Transition.Child>
       </div>
     </Transition>
-  );
+  );  
 }  
 
 export default UserSettingsModal;
