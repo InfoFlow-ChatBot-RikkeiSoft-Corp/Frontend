@@ -374,36 +374,36 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                           />
                           <p className="text-lg font-semibold">Drag and Drop</p>
                           <p className="or-text">or</p>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              (
-                                document.querySelector('input[type="file"]') as HTMLInputElement
-                              )?.click()
-                            }
-                            className="file-upload-box button"
-                          >
-                            Select File
-                          </button>
-                          <input
-                            type="file"
-                            id="file-upload"
-                            name="file-upload"
-                            className="hidden"
-                            onChange={handleFileSelect}
-                            accept={acceptedFileExtensions}
-                          />
-                          <div className="save-button-box mt-4 text-center">
-                            <button
-                              onClick={handleFileUpload}
-                              disabled={!selectedFile}
-                              className="save-button-box button"
-                            >
-                              Upload
-                            </button>
-                          </div>
                         </>
                       )}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          (
+                            document.querySelector('input[type="file"]') as HTMLInputElement
+                          )?.click()
+                        }
+                        className="file-upload-box button"
+                      >
+                          Select File
+                        </button>
+                        <input
+                          type="file"
+                          id="file-upload"
+                          name="file-upload"
+                          className="hidden"
+                          onChange={handleFileSelect}
+                          accept={acceptedFileExtensions}
+                        />
+                        <div className="save-button-box mt-4 text-center">
+                          <button
+                            onClick={handleFileUpload}
+                            disabled={!selectedFile}
+                            className="save-button-box button"
+                          >
+                            Upload
+                          </button>
+                        </div>
                     </div>
                     <div className="table-container">
                       <table className="table-auto">
