@@ -32,9 +32,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   const { userSettings, setUserSettings } = useContext(UserContext);
   const [activeTab, setActiveTab] = useState<Tab>(Tab.GENERAL_TAB);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileList, setFileList] = useState<Array<{
-    title: ReactI18NextChildren | Iterable<ReactI18NextChildren>; name: string; type: string; size: number; date: string 
-}>>([]);
+  const [fileList, setFileList] = useState<Array<{ name: string; type: string; size: number; date: string}>>([]);
   const [isDragging, setIsDragging] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -415,12 +413,12 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                           {fileList.length > 0 ? (
                             fileList.map((file, index) => (
                               <tr key={index}>
-                                <td>{file.title}</td>
+                                <td>{file.name}</td>
                                 <td>{file.type}</td>
                                 <td>{(file.size / 1024).toFixed(2)} KB</td>
                                 <td>
                                   <button
-                                    onClick={() => handleFileDelete(file.title)}
+                                    onClick={() => handleFileDelete(file.name)}
                                     className="py-1 px-2 bg-red-500 text-white rounded hover:bg-red-700"
                                   >
                                     Delete

@@ -6,7 +6,7 @@ import { APP_CONSTANTS } from "../constants/appConstants";
 export class AuthService {
     static username: string | null = null;
 
-    static async login(username: string, password: string): Promise<string> {
+    static async login(username: string, password: string): Promise<{ token: string; user_id: string }> {
         try {
             const response = await axios.post(
                 `${APP_CONSTANTS.BASE_URL}${API_ENDPOINTS.LOGIN}`,
