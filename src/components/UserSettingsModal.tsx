@@ -57,11 +57,13 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
+    console.log("Selected file:", file); // 디버깅 로그 추가
     setSelectedFile(file);
     if (file) {
-      setPreview(URL.createObjectURL(file));
+        setPreview(URL.createObjectURL(file));
     }
   };
+
 
   const handleFileUpload = async () => {
     const username = AuthService.getUsername();
@@ -107,37 +109,47 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   const loadFileList = async () => {
     const username = AuthService.getUsername();
     if (!username) {
-      NotificationService.handleError("Username not found. Please log in again.");
-      return;
+        NotificationService.handleError("Username not found. Please log in again.");
+        return;
     }
+
     try {
-      const response = await fetch(API_ENDPOINTS.LIST_FILES, {
-        method: "GET",
-        headers: {
-          username,
-        },
-      });
+        const response = await fetch(API_ENDPOINTS.LIST_FILES, {
+            method: "GET",
+            headers: {
+                username,
+            },
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch file list.");
-      }
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to fetch file list.");
+        }
 
-      const data = await response.json();
+        const data = await response.json();
 
-      console.log("Loaded file list from API:", data.files);
-      setFileList(data.files || []);
+        // API 응답 데이터를 변환
+        const files = (data.files || []).map((file: any) => ({
+            name: file.title, // title을 name으로 변환
+            type: file.type,
+            size: file.size,
+            date: file.upload_date,
+        }));
+
+        console.log("Loaded file list from API:", files); // 변환된 데이터 디버깅
+        setFileList(files); // 변환된 데이터를 상태로 설정
     } catch (error) {
-      console.error("Error loading file list:", error);
-      NotificationService.handleUnexpectedError(new Error("Failed to load file list"));
+        console.error("Error loading file list:", error);
+        NotificationService.handleUnexpectedError(new Error("Failed to load file list"));
     }
   };
+
 
   const handleFileDelete = async (name: string) => {
     console.log("Attempting to delete file:", name); // 디버깅 로그 추가
   
     if (!name) {
-      console.error("Error: File name is undefined or empty.");
+      console.error("Error: File name is undefined or empty."); // 에러 로그 추가
       NotificationService.handleError("Failed to delete file: Invalid file name.");
       return;
     }
@@ -148,6 +160,8 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
         NotificationService.handleError("Username not found. Please log in again.");
         return;
       }
+
+      console.log(`DELETE URL: ${API_ENDPOINTS.DELETE_FILE}/${encodeURIComponent(name)}`);
   
       const response = await fetch(`${API_ENDPOINTS.DELETE_FILE}/${encodeURIComponent(name)}`, {
         method: "DELETE",
@@ -167,7 +181,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
       console.error("Error deleting file:", error);
       NotificationService.handleUnexpectedError(new Error("Failed to delete file"));
     }
-  };
+  };  
   
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -385,16 +399,16 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                         </>
                       )}
                       <button
-                        type="button"
-                        onClick={() =>
-                          (
-                            document.querySelector('input[type="file"]') as HTMLInputElement
-                          )?.click()
-                        }
-                        className="file-upload-box button"
+                          type="button"
+                          onClick={() => {
+                              const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+                              console.log("File input element:", input); // 디버깅 로그
+                              input?.click();
+                          }}
+                          className="file-upload-box button"
                       >
                           Select File
-                        </button>
+                      </button>
                         <input
                           type="file"
                           id="file-upload"
