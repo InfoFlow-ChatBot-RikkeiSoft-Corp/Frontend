@@ -211,46 +211,105 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   };
 
   // Weblink functions
-  const handleWeblinkUpload = () => {
-    if (weblink) {
-      const weblinkInfo = {
-        link: weblink,
-        date: new Date().toISOString(),
-      };
-      localStorage.setItem(`weblink_${weblink}`, JSON.stringify(weblinkInfo));
-      NotificationService.handleSuccess('Weblink uploaded successfully.');
-      setWeblink('');
-      loadWeblinkList();
+  const handleWeblinkUpload = async () => {
+    const username = AuthService.getUsername();
+    if (!username) {
+      NotificationService.handleError("Username not found. Please log in again.");
+      return;
     }
-  };
-
-  const loadWeblinkList = () => {
-    const links: Array<{ link: string; date: string }> = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('weblink_')) {
-        try {
-          const weblinkInfo = JSON.parse(localStorage.getItem(key) || '{}');
-          if (weblinkInfo.link && weblinkInfo.date) {
-            links.push({
-              link: weblinkInfo.link,
-              date: weblinkInfo.date,
-            });
-          } else {
-            console.warn(`Invalid weblink info for key: ${key}`);
-          }
-        } catch (error) {
-          console.error(`Failed to parse weblink info for key: ${key}`, error);
-        }
+ 
+    if (!weblink) {
+      NotificationService.handleError("No Weblink provided.");
+      return;
+    }
+ 
+    try {
+      const response = await fetch(API_ENDPOINTS.UPLOAD_FILE, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          username,
+        },
+        body: JSON.stringify({
+          title: weblink, // Weblink 제목
+          url: weblink,   // Weblink URL
+        }),
+      });
+ 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to upload Weblink.");
       }
+ 
+      const data = await response.json();
+      NotificationService.handleSuccess("Weblink uploaded successfully.");
+      console.log("Uploaded Weblink metadata:", data);
+ 
+      // Refresh Weblink list after upload
+      loadWeblinkList();
+      setWeblink(''); // Clear input field
+    } catch (error) {
+      console.error("Error during Weblink upload:", error);
+      NotificationService.handleUnexpectedError(new Error("Failed to upload Weblink"));
     }
-    setWeblinkList(links);
   };
-
-  const handleWeblinkDelete = (link: string) => {
-    localStorage.removeItem(`weblink_${link}`);
-    NotificationService.handleSuccess('Weblink deleted successfully.');
-    loadWeblinkList();
+ 
+  const loadWeblinkList = async () => {
+    const username = AuthService.getUsername();
+    if (!username) {
+      NotificationService.handleError("Username not found. Please log in again.");
+      return;
+    }
+ 
+    try {
+      const response = await fetch(API_ENDPOINTS.LIST_FILES, {
+        method: "GET",
+        headers: {
+          username,
+        },
+      });
+ 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch Weblink list.");
+      }
+ 
+      const data = await response.json();
+ 
+      console.log("Loaded Weblink list from API:", data.weblinks);
+      setWeblinkList(data.weblinks || []);
+    } catch (error) {
+      console.error("Error loading Weblink list:", error);
+      NotificationService.handleUnexpectedError(new Error("Failed to load Weblink list"));
+    }
+  };
+ 
+  const handleWeblinkDelete = async (link: string) => {
+    const username = AuthService.getUsername();
+    if (!username) {
+      NotificationService.handleError("Username not found. Please log in again.");
+      return;
+    }
+ 
+    try {
+      const response = await fetch(`${API_ENDPOINTS.DELETE_FILE}/${encodeURIComponent(link)}`, {
+        method: "DELETE",
+        headers: {
+          username,
+        },
+      });
+ 
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete Weblink.");
+      }
+ 
+      NotificationService.handleSuccess(`Weblink "${link}" deleted successfully.`);
+      loadWeblinkList(); // Refresh Weblink list
+    } catch (error) {
+      console.error("Error deleting Weblink:", error);
+      NotificationService.handleUnexpectedError(new Error("Failed to delete Weblink"));
+    }
   };
 
   return (
@@ -322,12 +381,12 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
               <div className="flex-1 p-4">
                 {activeTab === Tab.GENERAL_TAB && (
                   <div className="flex flex-col space-y-4">
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between text-white dark:text-white">
                       <label htmlFor="theme">{t('theme-label')}</label>
                       <select
                         id="theme"
                         name="theme"
-                        className="custom-select dark:custom-select border-gray-300 border rounded p-2 dark:bg-gray-800 dark:text-white dark:border-gray-600"
+                        className="custom-select text-white dark:custom-select border-gray-300 border rounded p-2 dark:bg-gray-800 dark:text-white dark:border-gray-600"
                         value={userSettings.userTheme}
                         onChange={(e) =>
                           setUserSettings({
@@ -372,8 +431,8 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                             alt="Upload Icon"
                             className="w-24 h-24 mb-2"
                           />
-                          <p className="text-lg font-semibold">Drag and Drop</p>
-                          <p className="or-text">or</p>
+                          <p className="text-lg font-semibold text-black">Drag and Drop</p>
+                          <p className="or-text text-black">or</p>
                         </>
                       )}
                       <button
@@ -395,6 +454,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                           onChange={handleFileSelect}
                           accept={acceptedFileExtensions}
                         />
+                    </div>
                         <div className="save-button-box mt-4 text-center">
                           <button
                             onClick={handleFileUpload}
@@ -404,7 +464,6 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                             Upload
                           </button>
                         </div>
-                    </div>
                     <div className="table-container">
                       <table className="table-auto">
                         <thead>
