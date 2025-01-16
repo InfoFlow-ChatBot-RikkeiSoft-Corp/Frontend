@@ -6,9 +6,8 @@ import {useTranslation} from 'react-i18next';
 import Tooltip from "./Tooltip";
 import UserSettingsModal from './UserSettingsModal';
 import ConversationList from "./ConversationList";
+import { NewConversationService } from '../service/NewConversationService';
 import { AuthService } from '../service/AuthService';
-import { NotificationService } from '../service/NotificationService';
-import { API_ENDPOINTS } from '../constants/apiEndpoints';
 
 interface SidebarProps {
   className: string;
@@ -26,58 +25,24 @@ const Sidebar: React.FC<SidebarProps> = ({className, isSidebarCollapsed, toggleS
   }
 
   const handleNewChat = async () => {
-    // 사용자 이름 동적 확인
-    const username = AuthService.getUsername();
-    console.log("AuthService.getUsername():", username);
-    if (!username) {
-      NotificationService.handleError("Username not found. Please log in again.");
+  const user_id = AuthService.getId(); // user_id 가져오기
+  
+    if (!user_id) {
+      alert("User ID is missing. Please log in.");
       return;
     }
   
     try {
-      // API 호출
-      const response = await fetch(API_ENDPOINTS.NEW_CONVERSATION, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "userID": username,
-        },
-        body: JSON.stringify({
-          title: "New Conversation", // 기본 채팅 제목
-        }),
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to start a new conversation.");
-      }
-  
-      // 성공적으로 채팅 생성
-      const data = await response.json();
-
-      NotificationService.handleSuccess("New conversation started successfully.");
-      console.log("Created conversation ID:", data.conversation_id);
-  
-      // 새 채팅 화면으로 이동
-      if (data.conversation_id) {
-        navigate(`/c/${data.conversation_id}`);
-      } else {
-        throw new Error("Conversation ID is missing in the response.");
-      }
-    } catch (error) {
-      // error를 명시적으로 처리
-      if (error instanceof Error) {
-        console.error("Error starting new conversation:", error.message);
-        NotificationService.handleError(
-          error.message || "An error occurred while starting a new conversation."
-        );
-      } else {
-        console.error("Unexpected error:", error);
-        NotificationService.handleError("An unexpected error occurred.");
-      }
+      console.log(user_id)
+      const conversation_id= await NewConversationService.createNewConversation(user_id, "new chat"); // 비동기 호출
+      console.log(`✅ New conversation created: ${conversation_id}`);
+      NewConversationService.saveConversationId(conversation_id.toString()); // conversation_id 저장
+      navigate("/main", { state: { reset: Date.now() } }); // 성공 시 리디렉션; 주소 다시 확인하기
+    } catch (error: any) {
+      console.error("Error creating new conversation:", error.message);
+      alert("❌ Failed to create a new conversation. Please try again.");
     }
-  }
-  
+  };  
 
   const handleOnClose = () => {
     setSettingsModalVisible(false);

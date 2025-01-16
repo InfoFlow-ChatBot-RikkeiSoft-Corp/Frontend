@@ -21,6 +21,7 @@ import ConversationService, { Conversation } from '../service/ConversationServic
 import { UserContext } from '../UserContext';
 import { NotificationService } from '../service/NotificationService';
 import { ArrowUturnDownIcon } from '@heroicons/react/24/outline';
+import { NewConversationService } from '../service/NewConversationService';
 
 function getFirstValidString(...args: (string | undefined | null)[]): string {
   for (const arg of args) {
@@ -232,9 +233,10 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
     
     // RAG 모델로 메시지 스트리밍 전송
     const user_id = AuthService.getId(); // localStorage에서 user_id 가져오기
-    if(user_id){
+    const conversation_id = NewConversationService.getConversationId();
+    if(user_id && conversation_id){
       console.log(user_id)
-      ChatService.sendMessageStreamed(user_id, "5", messages, handleStreamedResponse)
+      ChatService.sendMessageStreamed(user_id, conversation_id, messages, handleStreamedResponse)
       .catch((err) => {
         if (err instanceof CustomError) {
           const message: string = err.message;
