@@ -73,7 +73,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
 
         // Mark user as authenticated & redirect
         setIsAuthenticated(true);
-        navigate('/');
+        navigate('/main');
       }
     };
     
