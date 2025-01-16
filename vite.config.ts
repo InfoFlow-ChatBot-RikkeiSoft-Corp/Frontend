@@ -11,7 +11,6 @@ export default defineConfig({
         changeOrigin: true,
         configure: (proxy) => {
             proxy.on('proxyReq', (proxyReq) => {
-              console.log('Proxying request to:', proxyReq.path);
             });
           },
       },

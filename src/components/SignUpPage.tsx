@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import styles from '../styles/SignUp.module.css';
 import GoogleButton from 'react-google-button';
+import { NewConversationService } from '../service/NewConversationService';
 
 const SignUpPage: React.FC = () => {
   const [email, setEmail] = useState('');

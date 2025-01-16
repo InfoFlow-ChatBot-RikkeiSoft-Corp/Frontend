@@ -81,6 +81,7 @@ const App: React.FC = () => {
             }
           />
 
+          {/* Default Route */}
           <Route
             path="*"
             element={<Navigate to="/" replace />}
