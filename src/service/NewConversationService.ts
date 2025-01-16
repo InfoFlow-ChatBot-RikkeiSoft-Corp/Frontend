@@ -6,8 +6,9 @@ import { API_ENDPOINTS } from "../constants/apiEndpoints";
 export class NewConversationService {
   static async createNewConversation(userId: string, title: string = "New Conversation"): Promise<{ conversation_id: string }> {
     try {
+        console.log(`${APP_CONSTANTS.BASE_URL}${API_ENDPOINTS.NEW_CONVERSATION}`)
       const response = await axios.post(
-        `${APP_CONSTANTS.BASE_URL}${API_ENDPOINTS.NEW_CONVERSATION}`,
+        `${APP_CONSTANTS.BASE_URL}/${API_ENDPOINTS.NEW_CONVERSATION}`,
         { title }, // Request body
         {
           headers: {
