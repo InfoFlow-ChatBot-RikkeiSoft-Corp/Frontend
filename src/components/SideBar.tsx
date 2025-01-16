@@ -40,7 +40,7 @@ const Sidebar: React.FC<SidebarProps> = ({className, isSidebarCollapsed, toggleS
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          username, // 동적으로 사용자 이름 추가
+          userID,
         },
         body: JSON.stringify({
           title: "New Conversation", // 기본 채팅 제목
