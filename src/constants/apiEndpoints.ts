@@ -18,5 +18,6 @@ export const API_ENDPOINTS = {
     CHAT: '/api/chat',
     UPLOAD_FILE: '/api/files/upload',
     LIST_FILES: '/api/files/list_files',
-    DELETE_FILE: '/api/files/delete'
+    DELETE_FILE: '/api/files/delete',
+    NEW_CONVERSATION: "api/chat/new"
   };

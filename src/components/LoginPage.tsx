@@ -7,7 +7,7 @@ import { AuthService } from '../service/AuthService'; // AuthService import
 import {NotificationService} from '../service/NotificationService'; // NotificationService import
 
 interface LoginPageProps {
-  setIsAuthenticated: (isAuthenticated: boolean) => void;
+  setIsAuthenticated: (isAuthenticated: boolean) => void; // 정확한 타입 지정
 }
 
 declare global {
@@ -36,6 +36,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
       console.log(user_id)
       NotificationService.handleSuccess('Login successful!'); // Display success notification
       navigate('/main'); // 메인 페이지로 리디렉션
+
     } catch (error: any) {
       NotificationService.handleError(error.response?.data?.error || 'Login failed. Please try again.'); // Display error notification
     } finally {
@@ -96,6 +97,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
               onChange= {(e) => setUsername(e.target.value)}
               placeholder="Enter email address"
               required
+              disabled={isLoading} // 로딩 중 비활성화
             />
           </div>
           <div className={styles.Inputcontainer}>
@@ -107,6 +109,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
               onChange= {(e) => setPassword(e.target.value)}
               placeholder="Enter Password"
               required
+              disabled={isLoading} // 로딩 중 비활성화
             />
           </div>
           <div className={styles.footer}>
