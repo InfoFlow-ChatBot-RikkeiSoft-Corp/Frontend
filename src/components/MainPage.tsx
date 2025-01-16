@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { ChatService } from "../service/ChatService";
+import { AuthService } from "../service/AuthService";
 import Chat from "./Chat";
 import { ChatCompletion, ChatMessage, MessageType, Role, FileDataRef } from "../models/ChatCompletion";
 import { ScrollToBottomButton } from "./ScrollToBottomButton";
@@ -181,10 +182,10 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
   }
 
   const addMessage = (
-    role: Role,
-    messageType: MessageType,
-    message: string,
-    fileDataRef: FileDataRef[],
+    role: Role, 
+    messageType: MessageType, 
+    message: string, 
+    fileDataRef: FileDataRef[], 
     callback?: (callback: ChatMessage[]) => void
   ) => {
     setMessages((prevMessages: ChatMessage[]) => {
@@ -206,7 +207,7 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
   function sendMessage(updatedMessages: ChatMessage[]) {
     setLoading(true);
     clearInputArea();
-  
+
     // 시스템 프롬프트 설정
     let systemPrompt = getFirstValidString(
       conversation?.systemPrompt,
@@ -228,9 +229,12 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
     if (userMessage) {
       addMessage(userMessage.role, userMessage.messageType, userMessage.content, []); // 실제 유저 메시지
     }
-  
+    
     // RAG 모델로 메시지 스트리밍 전송
-    ChatService.sendMessageStreamed("11", "1", messages, handleStreamedResponse)
+    const user_id = AuthService.getId(); // localStorage에서 user_id 가져오기
+    if(user_id){
+      console.log(user_id)
+      ChatService.sendMessageStreamed(user_id, "5", messages, handleStreamedResponse)
       .catch((err) => {
         if (err instanceof CustomError) {
           const message: string = err.message;
@@ -246,6 +250,10 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
       .finally(() => {
         setLoading(false); // 로딩 상태 종료
       });
+    } else {
+      console.error("User ID not found. Please log in.");
+      setLoading(false);
+    }    
   }
   
   const handleStreamedResponse = (response: string) => {
@@ -293,9 +301,6 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
       ]);
     }
   };
-  
-  
-  
 
   const scrollToBottom = () => {
     const chatContainer = document.getElementById('chat-container');

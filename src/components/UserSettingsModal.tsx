@@ -12,11 +12,12 @@ import { NotificationService } from '../service/NotificationService';
 import { useTranslation } from 'react-i18next';
 import { Transition } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
+import { API_AUTH_BASE_URL } from '../constants/apiEndpoints';
 import { API_ENDPOINTS } from '../constants/apiEndpoints';
 import { AuthService } from '../service/AuthService';
 
-interface UserSettingsModalProps {
-  isVisible: boolean;
+interface UserSettingsModalProps {  
+  isVisible: boolean;   
   onClose: () => void;
 }
 
@@ -177,10 +178,34 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     }
   };
 
-  const handleLogout = () => {
-    // Implement your logout logic here
-    console.log('User logged out');
-    navigate('/login'); // Redirect to the login page
+  const handleLogout = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('You are not logged in.');
+      navigate('/login');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_AUTH_BASE_URL}/logout`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`, 
+        },
+      });
+
+      if (response.ok) {
+        localStorage.removeItem('token');
+        navigate('/login');
+      } else {
+        const errorData = await response.json();
+        alert(`Logout failed: ${errorData.error}`);
+      }
+    } catch (error) {
+      console.error('Error logging out:', error);
+      alert('An error occurred during logout. Please try again.');
+    }
   };
 
   const getFileExtension = (fileName: string) => {
@@ -281,6 +306,15 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                   <CircleStackIcon className="w-4 h-4 mr-3" aria-hidden="true" />
                   {t('storage-tab')}
                 </div>
+                <div
+                  className={`cursor-pointer p-4 flex items-center ${
+                    activeTab === Tab.WEBLINK_TAB ? 'bg-gray-200 dark:bg-gray-700' : ''
+                  }`}
+                  onClick={() => setActiveTab(Tab.WEBLINK_TAB)}
+                >
+                  <LinkIcon className="w-4 h-4 mr-3" aria-hidden="true" />
+                  Weblink
+                </div>
                 <div className="logout-button-container">
                   <button onClick={handleLogout} className="logout-button">
                     Logout
@@ -369,10 +403,12 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                       <table>
                         <thead>
                           <tr>
-                            <th>Name</th>
-                            <th>Type</th>
-                            <th>Size</th>
-                            <th>Actions</th>
+                            <td
+                              colSpan={5}
+                              className="py-2 px-4 text-sm text-gray-900 text-center"
+                            >
+                              No files found
+                            </td>
                           </tr>
                         </thead>
                         <tbody>
@@ -396,6 +432,68 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                             <tr>
                               <td colSpan={4} className="text-center">
                                 No files found
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              )}
+                {activeTab === Tab.WEBLINK_TAB && (
+                  <div className="flex flex-col h-full w-full p-4 bg-white rounded-lg shadow-md">
+                    <div className="flex items-center space-x-4 mb-4">
+                      <input
+                        type="text"
+                        value={weblink}
+                        onChange={(e) => setWeblink(e.target.value)}
+                        placeholder="Enter weblink"
+                        className="border border-gray-300 rounded p-2 flex-grow text-black"
+                      />
+                      <button
+                        onClick={handleWeblinkUpload}
+                        className="upload-button"
+                      >
+                        Upload
+                      </button>
+                    </div>
+                    <div className="table-container w-full h-full border-gray-300 rounded-lg">
+                      <table className="table-auto w-full h-full">
+                        <thead>
+                          <tr>
+                            <th>Weblink</th>
+                            <th>Upload Date</th>
+                            <th></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {weblinkList.length > 0 ? (
+                            weblinkList.map((link, index) => (
+                              <tr key={index}>
+                                <td title={link.link}>
+                                  <a href={link.link} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
+                                    {link.link}
+                                  </a>
+                                </td>
+                                <td>{new Date(link.date).toLocaleString()}</td>
+                                <td className="py-2 px-4 text-sm text-gray-900 dark:text-white w-1/4 truncate">
+                                  <button
+                                    onClick={() => handleWeblinkDelete(link.link)}
+                                    className="py-1 px-2 bg-red-500 text-white rounded hover:bg-red-700"
+                                  >
+                                    <TrashIcon className="h-4 w-4" aria-hidden="true" />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td
+                                colSpan={3}
+                                className="centered-text"
+                              >
+                                No weblinks found
                               </td>
                             </tr>
                           )}

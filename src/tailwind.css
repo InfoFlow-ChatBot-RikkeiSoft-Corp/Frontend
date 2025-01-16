@@ -915,9 +915,6 @@ video {
 .overflow-ellipsis {
   text-overflow: ellipsis;
 }
-.text-ellipsis {
-  text-overflow: ellipsis;
-}
 .whitespace-nowrap {
   white-space: nowrap;
 }
@@ -1299,6 +1296,10 @@ html, body, #root {
 .hover\:text-gray-900:hover {
   --tw-text-opacity: 1;
   color: rgb(17 24 39 / var(--tw-text-opacity, 1));
+}
+
+.hover\:underline:hover {
+  text-decoration-line: underline;
 }
 
 .focus\:outline-none:focus {

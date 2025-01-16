@@ -266,3 +266,35 @@
 .logout-button:hover {
   background-color: #ff4d4d;
 }
+
+/* Weblink input */
+.weblink-input {
+  color: black;
+}
+
+/* Upload button */
+.upload-button {
+  padding: 10px 24px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.upload-button:hover {
+  background-color: #2563eb;
+}
+
+.upload-button:disabled {
+  background-color: #3b82f6; /* Disabled state */
+  cursor: not-allowed;
+}
+
+/* Table container */
+.table-container {
+  overflow-x: auto;
+}

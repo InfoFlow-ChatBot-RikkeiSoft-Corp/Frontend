@@ -7,7 +7,7 @@ import { CHAT_STREAM_DEBOUNCE_TIME } from "../constants/appConstants";
 import { NotificationService } from '../service/NotificationService';
 import { API_ENDPOINTS } from "../constants/apiEndpoints";
 import { APP_CONSTANTS } from "../constants/appConstants";
- 
+
 export class ChatService {
   static async sendMessageStreamed(
     userId: string,
@@ -30,16 +30,14 @@ export class ChatService {
         },
         body: JSON.stringify(payload),
       });
- 
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
- 
+
       const reader = response.body?.getReader();
       if (reader) {
         const decoder = new TextDecoder();
         let accumulatedContent = ""; // 스트리밍된 전체 응답을 누적할 변수
-
 
         console.log("Streaming response started...");
 
@@ -53,8 +51,6 @@ export class ChatService {
           console.log("Received chunk:", chunk);
           onStreamedResponse(accumulatedContent); // 콜백 함수에 누적된 응답을 전달합니다.
         }
-
-
         console.log("Streaming response completed.");
       }
     } catch (error) {
