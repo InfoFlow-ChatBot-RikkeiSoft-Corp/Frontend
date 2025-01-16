@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import styles from '../styles/SignUp.module.css';
 import GoogleButton from 'react-google-button';
@@ -12,6 +12,7 @@ const SignUpPage: React.FC = () => {
   const navigate = useNavigate();
 
   const handleSubmission = async () => {
+    setErrorMsg(''); // Clear error message before processing
     if (!email || !password || !confirmPassword) {
       setErrorMsg('Please fill all fields');
       return;
@@ -23,8 +24,10 @@ const SignUpPage: React.FC = () => {
       return;
     }
 
-    if (password.length < 6) {
-      setErrorMsg('Password should have minimum six characters');
+    if (password.length < 8) {
+      setErrorMsg(
+        'Password must be at least 8 characters long and include numbers and letters'
+      );
       return;
     }
 
@@ -35,23 +38,56 @@ const SignUpPage: React.FC = () => {
 
     setSubmitButtonDisabled(true);
 
-    // Simulate an API call to check if the user is already registered
-    const isRegistered = false; // Replace with actual API call
-    if (isRegistered) {
-      setErrorMsg('User already registered. Please login.');
-      setSubmitButtonDisabled(false);
-      return;
-    }
+    try {
+      const response = await fetch('http://127.0.0.1:5000/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: email, password }),
+      });
 
-    // Simulate an API call to register the user
-    const isSuccess = true; // Replace with actual API call
-    if (isSuccess) {
-      navigate('/login');
-    } else {
-      setErrorMsg('Failed to sign up. Please try again.');
+      if (response.status === 201) {
+        navigate('/login'); // Redirect to login on successful signup
+      } else {
+        const data = await response.json();
+        setErrorMsg(data.error || 'Failed to sign up. Please try again.');
+      }
+    } catch (error) {
+      setErrorMsg('An error occurred while signing up. Please try again.');
+      console.error('Signup Error:', error);
+    } finally {
       setSubmitButtonDisabled(false);
     }
   };
+
+  // Google OAuth via Popup
+  const handleGoogleSignupClick = () => {
+    const width = 600,
+      height = 600;
+    const left = window.screenX + (window.innerWidth - width) / 2;
+    const top = window.screenY + (window.innerHeight - height) / 2;
+
+    window.open(
+      'http://127.0.0.1:5000/api/auth/google-redirect',
+      'GoogleSignupPopup',
+      `width=${width},height=${height},top=${top},left=${left}`
+    );
+  };
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'google-auth-success') {
+        localStorage.setItem('token', event.data.jwt);
+        navigate('/main'); // Redirect to home after Google signup
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [navigate]);
 
   return (
     <div className={styles.container}>
@@ -91,25 +127,33 @@ const SignUpPage: React.FC = () => {
           />
         </div>
         <div className={styles.footer}>
-          <b className={styles.error}>{errorMsg}</b>
+          {errorMsg && <b className={styles.error}>{errorMsg}</b>}
           <button
             onClick={handleSubmission}
             disabled={submitButtonDisabled}
+            className={styles.signupButton}
           >
             Signup
           </button>
           <p>
-            Already have an account?{" "}
-            <span>
-              <Link to="/login">Login</Link>
-            </span>
+            Already have an account?{' '}
+            <Link to="/login" className={styles.loginLink}>
+              Login
+            </Link>
           </p>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '0%' }}>
-                <GoogleButton
-                    style={{ transform: 'scale(0.8)' }}
-                    onClick={() => { console.log('Google button clicked') }}
-                />
-            </div>
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              marginTop: '10px',
+            }}
+          >
+            <GoogleButton
+              style={{ transform: 'scale(0.9)' }}
+              onClick={handleGoogleSignupClick}
+            />
+          </div>
         </div>
       </div>
     </div>
