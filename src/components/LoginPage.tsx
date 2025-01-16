@@ -34,7 +34,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
       setIsAuthenticated(true); // 인증 상태 업데이트
       console.log(user_id)
       alert('Login successful!'); // 성공 메시지
-      navigate('/'); // 메인 페이지로 리디렉션
+      navigate('/main'); // 메인 페이지로 리디렉션
     } catch (error: any) {
       alert(error.response?.data?.error || 'Login failed. Please try again.');
     } finally {
