@@ -13,8 +13,6 @@ const Homepage = () => {
           </Link>
           <nav className={styles.navMenu}>
             <li className={styles.navItem}>
-            </li>
-            <li className={styles.navItem}>
               <Link to="/login" className={styles.navLinks}>
                 Login
               </Link>
@@ -28,20 +26,16 @@ const Homepage = () => {
         </div>
       </header>
 
-      {/* Entry Section */}
-      <section className={styles.entry}>
-        <div className={styles.entryContent}>
-          <h2>"Empower Conversations with Custom AI Solutions"</h2>
+      {/* Hero Section */}
+      <section className={styles.hero}>
+        <div className={styles.heroContent}>
+          <h1>"Empower Conversations with Custom AI Solutions"</h1>
           <p>
             InfoFlow Chat leverages advanced AI capabilities to deliver seamless
             and context-aware interactions. Designed for organizations, it
             processes custom datasets to provide intelligent responses and
             enhances productivity through efficient communication.
           </p>
-        </div>
-        <div className={styles.entryImage}>
-          {/* Replace with your actual image source */}
-          <img src="/chatbot.png" alt="Chatbot Illustration" />
         </div>
       </section>
 
