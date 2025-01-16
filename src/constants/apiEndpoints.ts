@@ -10,6 +10,13 @@ export const UPLOAD = `${API_FILES_BASE_URL}/upload`;
 export const DELETE = `${API_FILES_BASE_URL}/delete`;
 export const LIST_FILES =`${API_FILES_BASE_URL}/list_files`;
 
-
-
-
+export const API_ENDPOINTS = {
+    LOGIN: '/api/auth/login', // 올바른 경로
+    LOGOUT: '/api/auth/logout',
+    SIGNIN: '/api/auth/google-login',
+    RAG_QUERY: "/api/rag/query",
+    CHAT: '/api/chat',
+    UPLOAD_FILE: '/api/files/upload',
+    LIST_FILES: '/api/files/list_files',
+    DELETE_FILE: '/api/files/delete'
+  };

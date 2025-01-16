@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import { ChatService } from "../service/ChatService";
+import { AuthService } from "../service/AuthService";
 import Chat from "./Chat";
 import { ChatCompletion, ChatMessage, MessageType, Role, FileDataRef } from "../models/ChatCompletion";
 import { ScrollToBottomButton } from "./ScrollToBottomButton";
@@ -95,7 +96,7 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        ChatService.cancelStream();
+        // ChatService.cancelStream();
       }
     };
 
@@ -179,7 +180,13 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
     addMessage(Role.User, MessageType.Normal, message, fileDataRef, sendMessage);
   }
 
-  const addMessage = (role: Role, messageType: MessageType, message: string, fileDataRef: FileDataRef[], callback?: (callback: ChatMessage[]) => void) => {
+  const addMessage = (
+    role: Role, 
+    messageType: MessageType, 
+    message: string, 
+    fileDataRef: FileDataRef[], 
+    callback?: (callback: ChatMessage[]) => void
+  ) => {
     setMessages((prevMessages: ChatMessage[]) => {
       const newMessage: ChatMessage = {
         id: prevMessages.length + 1,
@@ -199,41 +206,94 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
   function sendMessage(updatedMessages: ChatMessage[]) {
     setLoading(true);
     clearInputArea();
-    let systemPrompt = getFirstValidString(conversation?.systemPrompt, userSettings.instructions, OPENAI_DEFAULT_SYSTEM_PROMPT, DEFAULT_INSTRUCTIONS);
+    let systemPrompt = getFirstValidString(
+      conversation?.systemPrompt, 
+      userSettings.instructions, 
+      OPENAI_DEFAULT_SYSTEM_PROMPT, 
+      DEFAULT_INSTRUCTIONS);
+
     let messages: ChatMessage[] = [{
       role: Role.System,
       content: systemPrompt
-    } as ChatMessage, ...updatedMessages];
-  
-    ChatService.sendMessageStreamed(DEFAULT_MODEL, messages, handleStreamedResponse)
-      .then((response: ChatCompletion) => {
-        // nop
-      })
-      .catch(err => {
+    } as ChatMessage, 
+    ...updatedMessages];
+
+    // 사용자 메시지 추가 (마지막 메시지만)
+    const userMessage = updatedMessages[updatedMessages.length - 1];
+    if (userMessage) {
+      addMessage(userMessage.role, userMessage.messageType, userMessage.content, []); // 실제 유저 메시지
+    }
+    // RAG 모델로 메시지 스트리밍 전송
+    const user_id = AuthService.getId(); // localStorage에서 user_id 가져오기
+    if(user_id){
+      console.log(user_id)
+      ChatService.sendMessageStreamed(user_id, "5", messages, handleStreamedResponse)
+      .catch((err) => {
         if (err instanceof CustomError) {
           const message: string = err.message;
           setLoading(false);
           addMessage(Role.Assistant, MessageType.Error, message, []);
         } else {
-          NotificationService.handleUnexpectedError(err, 'Failed to send message to openai.');
+          NotificationService.handleUnexpectedError(
+            err,
+            "Failed to send message to RAG model."
+          );
         }
-      }).finally(() => {
-        setLoading(false); // Stop loading here, whether successful or not
+      })
+      .finally(() => {
+        setLoading(false); // 로딩 상태 종료
       });
+    } else {
+      console.error("User ID not found. Please log in.");
+      setLoading(false);
+    }    
   }
   
-  function handleStreamedResponse(content: string) {
-    setMessages(prevMessages => {
-      let isNew: boolean = false;
-      try {
-        // todo: this shouldn't be necessary
-        // Your existing logic here
-      } catch (error) {
-        console.error('Failed to handle streamed response:', error);
-      }
-      return prevMessages;
-    });
-  }
+  const handleStreamedResponse = (response: string) => {
+    try {
+      const parsedResponse = JSON.parse(response); // JSON 파싱
+      const answer = parsedResponse?.answer || ""; // answer 필드만 가져오기
+  
+      setMessages((prevMessages: ChatMessage[]) => {
+        const updatedMessages = [...prevMessages];
+  
+        // 마지막 메시지를 가져옴
+        const lastMessageIndex = updatedMessages.length - 1;
+        const lastMessage = updatedMessages[lastMessageIndex];
+  
+        if (lastMessage && lastMessage.role === Role.Assistant) {
+          // 기존 Assistant 메시지가 있다면 응답 내용을 추가
+          updatedMessages[lastMessageIndex] = {
+            ...lastMessage,
+            content: lastMessage.content + answer, // 기존 내용에 answer 추가
+          };
+        } else {
+          // Assistant 메시지가 없으면 새 메시지 추가
+          updatedMessages.push({
+            id: updatedMessages.length + 1,
+            role: Role.Assistant,
+            messageType: MessageType.Normal,
+            content: answer, // answer 필드만 추가
+            fileDataRef: [],
+          });
+        }
+  
+        return updatedMessages;
+      });
+    } catch (error) {
+      console.error("Error parsing response:", error);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          id: prevMessages.length + 1,
+          role: Role.Assistant,
+          messageType: MessageType.Error,
+          content: "Invalid response format.",
+          fileDataRef: [],
+        },
+      ]);
+    }
+  };
 
   const scrollToBottom = () => {
     const chatContainer = document.getElementById('chat-container');

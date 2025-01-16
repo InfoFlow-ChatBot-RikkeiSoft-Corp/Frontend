@@ -43,6 +43,8 @@ const ConversationList: React.FC = () => {
       ConversationService.getConversationById(n).then((conversation) => {
         if (conversation) {
           setSelectedId(conversation.id);
+        } else {
+          console.error("Conversation not found.");
         }
       });
     } else {

@@ -3,6 +3,7 @@ import styles from '../styles/LoginPage.module.css';
 import GoogleButton from 'react-google-button';
 import React, { useState, useEffect } from 'react';
 import { API_AUTH_BASE_URL } from '../constants/apiEndpoints';
+import { AuthService } from '../service/AuthService'; // AuthService import
 
 interface LoginPageProps {
   setIsAuthenticated: (isAuthenticated: boolean) => void;
@@ -17,6 +18,7 @@ declare global {
 const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // 로딩 상태 추가
   const navigate = useNavigate();
 
   // ------------------------------
@@ -24,25 +26,19 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
   // ------------------------------
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true); // 로딩 시작
     try {
-      const response = await fetch(`${API_AUTH_BASE_URL}/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      if (response.ok) {
-        const data = await response.json();
-        console.log('Login successful. Token:', data.token);
-        localStorage.setItem('token', data.token); // Save JWT token
-        setIsAuthenticated(true);
-        navigate('/'); // Redirect to main page
-      } else {
-        const errorData = await response.json();
-        alert(`Login failed: ${errorData.error}`);
-      }
-    } catch (error) {
-      console.error('Error logging in:', error);
-      alert('An error occurred while trying to log in. Please try again.');
+      const { token, user_id } = await AuthService.login(username, password); // AuthService 호출
+      AuthService.saveToken(token); // 토큰 저장
+      AuthService.saveId(user_id);
+      setIsAuthenticated(true); // 인증 상태 업데이트
+      console.log(user_id)
+      alert('Login successful!'); // 성공 메시지
+      navigate('/main'); // 메인 페이지로 리디렉션
+    } catch (error: any) {
+      alert(error.response?.data?.error || 'Login failed. Please try again.');
+    } finally {
+      setIsLoading(false); // 로딩 종료
     }
   };
 
