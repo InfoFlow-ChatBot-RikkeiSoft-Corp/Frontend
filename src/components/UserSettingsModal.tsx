@@ -393,21 +393,28 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                             onChange={handleFileSelect}
                             accept={acceptedFileExtensions}
                           />
+                          <div className="save-button-box mt-4 text-center">
+                            <button
+                              onClick={handleFileUpload}
+                              disabled={!selectedFile}
+                              className="save-button-box button"
+                            >
+                              Upload
+                            </button>
+                          </div>
                         </>
                       )}
                     </div>
-                    <div className="mt-4">
-                      <h4>Uploaded Files:</h4>
-                      <table>
+                    <div className="table-container">
+                      <table className="table-auto">
                         <thead>
-                          <tr>
-                            <td
-                              colSpan={5}
-                              className="py-2 px-4 text-sm text-gray-900 text-center"
-                            >
-                              No files found
-                            </td>
-                          </tr>
+                        <tr>
+                          <th>Name</th>
+                          <th>Type</th>
+                          <th>Size</th>
+                          <th>Upload date</th>
+                          <th></th>
+                        </tr>
                         </thead>
                         <tbody>
                           {fileList.length > 0 ? (
@@ -416,19 +423,20 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                                 <td>{file.name}</td>
                                 <td>{file.type}</td>
                                 <td>{(file.size / 1024).toFixed(2)} KB</td>
-                                <td>
+                                <td>{new Date(file.date).toLocaleString()}</td> {/* Display the upload date */}
+                                <td className="py-2 px-4 text-sm text-gray-900 dark:text-white w-1/4 truncate">
                                   <button
                                     onClick={() => handleFileDelete(file.name)}
                                     className="py-1 px-2 bg-red-500 text-white rounded hover:bg-red-700"
                                   >
-                                    Delete
+                                    <TrashIcon className="h-4 w-4" aria-hidden="true" />
                                   </button>
                                 </td>
                               </tr>
                             ))
                           ) : (
                             <tr>
-                              <td colSpan={4} className="text-center">
+                              <td colSpan={5} className= "py-2 px-4 text-sm text-gray-900 dark:text-white text-center">
                                 No files found
                               </td>
                             </tr>
