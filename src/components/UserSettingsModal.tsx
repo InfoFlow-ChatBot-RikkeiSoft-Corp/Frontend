@@ -31,7 +31,9 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   const { userSettings, setUserSettings } = useContext(UserContext);
   const [activeTab, setActiveTab] = useState<Tab>(Tab.GENERAL_TAB);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileList, setFileList] = useState<Array<{ name: string; type: string; size: number; date: string }>>([]);
+  const [fileList, setFileList] = useState<Array<{
+    title: ReactI18NextChildren | Iterable<ReactI18NextChildren>; name: string; type: string; size: number; date: string 
+}>>([]);
   const [isDragging, setIsDragging] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();

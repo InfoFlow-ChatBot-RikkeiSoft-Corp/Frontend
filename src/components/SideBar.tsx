@@ -40,7 +40,7 @@ const Sidebar: React.FC<SidebarProps> = ({className, isSidebarCollapsed, toggleS
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          userID,
+          "userID": username,
         },
         body: JSON.stringify({
           title: "New Conversation", // 기본 채팅 제목
@@ -54,11 +54,16 @@ const Sidebar: React.FC<SidebarProps> = ({className, isSidebarCollapsed, toggleS
   
       // 성공적으로 채팅 생성
       const data = await response.json();
+
       NotificationService.handleSuccess("New conversation started successfully.");
       console.log("Created conversation ID:", data.conversation_id);
   
       // 새 채팅 화면으로 이동
-      navigate(`/c/${data.conversation_id}`);
+      if (data.conversation_id) {
+        navigate(`/c/${data.conversation_id}`);
+      } else {
+        throw new Error("Conversation ID is missing in the response.");
+      }
     } catch (error) {
       // error를 명시적으로 처리
       if (error instanceof Error) {
