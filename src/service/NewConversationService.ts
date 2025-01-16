@@ -17,10 +17,13 @@ export class NewConversationService {
           },
         }
       );
+    console.log("Response Data:", response);
+    // console.log("Conversation ID:", response.data.conversation_id);
 
-      const { conversation_id } = response.data;
+    const conversation_id = response.data.conversation_id;
+    console.log("Conversation ID:", conversation_id);
 
-      return conversation_id.toString(); // { conversation_id: "..." }
+      return conversation_id; // { conversation_id: "..." }
     } catch (error: any) {
       console.error("Error creating new conversation:", error.response?.data || error.message);
       throw new Error(error.response?.data?.error || "Failed to create new conversation.");

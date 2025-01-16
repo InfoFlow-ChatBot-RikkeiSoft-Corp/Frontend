@@ -33,10 +33,10 @@ const Sidebar: React.FC<SidebarProps> = ({className, isSidebarCollapsed, toggleS
   
     try {
       console.log(user_id)
-      const { conversation_id } = await NewConversationService.createNewConversation(user_id, "new chat"); // 비동기 호출
+      const conversation_id= await NewConversationService.createNewConversation(user_id, "new chat"); // 비동기 호출
       console.log(`✅ New conversation created: ${conversation_id}`);
-      NewConversationService.saveConversationId(conversation_id); // conversation_id 저장
-      navigate("/", { state: { reset: Date.now() } }); // 성공 시 리디렉션; 주소 다시 확인하기
+      NewConversationService.saveConversationId(conversation_id.toString()); // conversation_id 저장
+      navigate("/main", { state: { reset: Date.now() } }); // 성공 시 리디렉션; 주소 다시 확인하기
     } catch (error: any) {
       console.error("Error creating new conversation:", error.message);
       alert("❌ Failed to create a new conversation. Please try again.");
