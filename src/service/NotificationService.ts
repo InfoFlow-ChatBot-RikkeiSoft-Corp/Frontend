@@ -1,4 +1,4 @@
-import {toast} from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import {Theme, UserTheme} from "../UserContext";
 
 export class NotificationService {
@@ -21,7 +21,7 @@ export class NotificationService {
     toast.error(message, {
       toastId: toastId || 'error',
       position: "top-center",
-      autoClose: 5000,
+      autoClose: 2000,
       hideProgressBar: true,
       closeOnClick: true,
       pauseOnHover: true,
@@ -35,7 +35,7 @@ export class NotificationService {
     toast.error(title, {
       toastId: toastId || 'error',
       position: "top-center",
-      autoClose: 5000,
+      autoClose: 2000,
       hideProgressBar: true,
       closeOnClick: true,
       pauseOnHover: true,
@@ -49,7 +49,7 @@ export class NotificationService {
     toast.success(title, {
       toastId: toastId || 'success',
       position: "top-center",
-      autoClose: 5000,
+      autoClose: 2000,
       hideProgressBar: true,
       closeOnClick: true,
       pauseOnHover: true,
