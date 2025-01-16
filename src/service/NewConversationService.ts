@@ -17,7 +17,9 @@ export class NewConversationService {
         }
       );
 
-      return response.data; // { conversation_id: "..." }
+      const { conversation_id } = response.data;
+
+      return conversation_id.toString(); // { conversation_id: "..." }
     } catch (error: any) {
       console.error("Error creating new conversation:", error.response?.data || error.message);
       throw new Error(error.response?.data?.error || "Failed to create new conversation.");
