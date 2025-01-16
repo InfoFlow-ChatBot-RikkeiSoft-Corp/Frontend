@@ -8,6 +8,7 @@ import UserSettingsModal from './UserSettingsModal';
 import ConversationList from "./ConversationList";
 import { NewConversationService } from '../service/NewConversationService';
 import { AuthService } from '../service/AuthService';
+
 interface SidebarProps {
   className: string;
   isSidebarCollapsed: boolean;
@@ -24,7 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({className, isSidebarCollapsed, toggleS
   }
 
   const handleNewChat = async () => {
-    const user_id = AuthService.getId(); // user_id 가져오기
+  const user_id = AuthService.getId(); // user_id 가져오기
   
     if (!user_id) {
       alert("User ID is missing. Please log in.");

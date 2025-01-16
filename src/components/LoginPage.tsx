@@ -4,9 +4,10 @@ import GoogleButton from 'react-google-button';
 import React, { useState, useEffect } from 'react';
 import { API_AUTH_BASE_URL } from '../constants/apiEndpoints';
 import { AuthService } from '../service/AuthService'; // AuthService import
+import {NotificationService} from '../service/NotificationService'; // NotificationService import
 
 interface LoginPageProps {
-  setIsAuthenticated: (isAuthenticated: boolean) => void;
+  setIsAuthenticated: (isAuthenticated: boolean) => void; // 정확한 타입 지정
 }
 
 declare global {
@@ -28,15 +29,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
     e.preventDefault();
     setIsLoading(true); // 로딩 시작
     try {
-      const { token, user_id } = await AuthService.login(username, password); // AuthService 호출
+      const {token,user_id } = await AuthService.login(username, password); // AuthService 호출
       AuthService.saveToken(token); // 토큰 저장
       AuthService.saveId(user_id);
       setIsAuthenticated(true); // 인증 상태 업데이트
       console.log(user_id)
-      alert('Login successful!'); // 성공 메시지
+      NotificationService.handleSuccess('Login successful!'); // Display success notification
       navigate('/main'); // 메인 페이지로 리디렉션
+
     } catch (error: any) {
-      alert(error.response?.data?.error || 'Login failed. Please try again.');
+      NotificationService.handleError(error.response?.data?.error || 'Login failed. Please try again.'); // Display error notification
     } finally {
       setIsLoading(false); // 로딩 종료
     }
@@ -95,6 +97,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
               onChange= {(e) => setUsername(e.target.value)}
               placeholder="Enter email address"
               required
+              disabled={isLoading} // 로딩 중 비활성화
             />
           </div>
           <div className={styles.Inputcontainer}>
@@ -106,6 +109,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
               onChange= {(e) => setPassword(e.target.value)}
               placeholder="Enter Password"
               required
+              disabled={isLoading} // 로딩 중 비활성화
             />
           </div>
           <div className={styles.footer}>

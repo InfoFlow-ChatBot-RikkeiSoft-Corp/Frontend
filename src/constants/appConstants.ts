@@ -34,6 +34,8 @@ export const TEXT_MIME_TYPES = [
   'text/markdown'
 ];
 
+// appConstants.ts
+
 export const APP_CONSTANTS = {
   TOKEN_KEY: "auth_token", // 로컬 스토리지에 저장될 JWT 키
   USER_ID: "user_id",

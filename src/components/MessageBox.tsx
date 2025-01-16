@@ -211,6 +211,7 @@ const MessageBox =
       const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         e.stopPropagation();
+        console.log("check ....");
         if (textAreaRef.current) {
           setTextValue(textAreaRef.current.value);
         }
