@@ -6,7 +6,7 @@ import { API_AUTH_BASE_URL } from '../constants/apiEndpoints';
 import { AuthService } from '../service/AuthService'; // AuthService import
 
 interface LoginPageProps {
-  setIsAuthenticated: (isAuthenticated: boolean) => void;
+  setIsAuthenticated: (isAuthenticated: boolean) => void; // 정확한 타입 지정
 }
 
 declare global {
@@ -35,6 +35,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
       console.log(user_id)
       alert('Login successful!'); // 성공 메시지
       navigate('/main'); // 메인 페이지로 리디렉션
+
     } catch (error: any) {
       alert(error.response?.data?.error || 'Login failed. Please try again.');
     } finally {
@@ -95,6 +96,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
               onChange= {(e) => setUsername(e.target.value)}
               placeholder="Enter email address"
               required
+              disabled={isLoading} // 로딩 중 비활성화
             />
           </div>
           <div className={styles.Inputcontainer}>
@@ -106,6 +108,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
               onChange= {(e) => setPassword(e.target.value)}
               placeholder="Enter Password"
               required
+              disabled={isLoading} // 로딩 중 비활성화
             />
           </div>
           <div className={styles.footer}>
