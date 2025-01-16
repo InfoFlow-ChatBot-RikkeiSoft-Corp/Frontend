@@ -6,7 +6,8 @@ import {useTranslation} from 'react-i18next';
 import Tooltip from "./Tooltip";
 import UserSettingsModal from './UserSettingsModal';
 import ConversationList from "./ConversationList";
-
+import { NewConversationService } from '../service/NewConversationService';
+import { AuthService } from '../service/AuthService';
 interface SidebarProps {
   className: string;
   isSidebarCollapsed: boolean;
@@ -22,9 +23,24 @@ const Sidebar: React.FC<SidebarProps> = ({className, isSidebarCollapsed, toggleS
     setSettingsModalVisible(true);
   }
 
-  const handleNewChat = () => {
-    navigate('/', {state: {reset: Date.now()}});
-  }
+  const handleNewChat = async () => {
+    const user_id = AuthService.getId(); // user_id 가져오기
+  
+    if (!user_id) {
+      alert("User ID is missing. Please log in.");
+      return;
+    }
+  
+    try {
+      const response = await NewConversationService.createNewConversation(user_id, "new chat"); // 비동기 호출
+      console.log(`✅ New conversation created: ${response.conversation_id}`);
+      NewConversationService.saveConversationId(response.conversation_id); // conversation_id 저장
+      navigate("/", { state: { reset: Date.now() } }); // 성공 시 리디렉션
+    } catch (error: any) {
+      console.error("Error creating new conversation:", error.message);
+      alert("❌ Failed to create a new conversation. Please try again.");
+    }
+  };  
 
   const handleOnClose = () => {
     setSettingsModalVisible(false);
