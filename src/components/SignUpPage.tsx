@@ -46,6 +46,7 @@ const SignUpPage: React.FC = () => {
     // Simulate an API call to register the user
     const isSuccess = true; // Replace with actual API call
     if (isSuccess) {
+      // new conversation 호출해서 id 저장하기
       navigate('/login');
     } else {
       setErrorMsg('Failed to sign up. Please try again.');
