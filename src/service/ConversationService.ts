@@ -96,7 +96,11 @@ class ConversationService {
       console.log(`Conversation with ID ${id} not found.`);
     }
   }
-
+  static async deleteAllConversations(): Promise<void> {
+    await db.conversations.clear();
+    let event: ConversationChangeEvent = {action: 'delete', id: 0};
+    conversationsEmitter.emit('conversationChangeEvent', event);
+  }
   static async countConversations(): Promise<number> {
     return db.conversations.count();
   }
