@@ -63,6 +63,7 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
   }, []);
 
   useEffect(() => {
+    console.log("Loaded ID:", id);
     if (location.pathname === '/') {
       newConversation();
     } else {
@@ -195,7 +196,7 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
         content: message,
         fileDataRef: fileDataRef,
       };
-      const updatedMessages = [...prevMessages, newMessage];
+      const updatedMessages = [...prevMessages, newMessage]; // 이전 메시지에 새 메시지 추가
       if (callback) {
         callback(updatedMessages);
       }
@@ -206,23 +207,29 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
   function sendMessage(updatedMessages: ChatMessage[]) {
     setLoading(true);
     clearInputArea();
+
+    // 시스템 프롬프트 설정
     let systemPrompt = getFirstValidString(
-      conversation?.systemPrompt, 
-      userSettings.instructions, 
-      OPENAI_DEFAULT_SYSTEM_PROMPT, 
-      DEFAULT_INSTRUCTIONS);
-
-    let messages: ChatMessage[] = [{
-      role: Role.System,
-      content: systemPrompt
-    } as ChatMessage, 
-    ...updatedMessages];
-
+      conversation?.systemPrompt,
+      userSettings.instructions,
+      OPENAI_DEFAULT_SYSTEM_PROMPT,
+      DEFAULT_INSTRUCTIONS
+    );
+  
+    // 메시지 리스트 생성
+    let messages: ChatMessage[] = [
+      {
+        role: Role.System,
+        content: systemPrompt,
+      } as ChatMessage,
+      ...updatedMessages,
+    ];
     // 사용자 메시지 추가 (마지막 메시지만)
     const userMessage = updatedMessages[updatedMessages.length - 1];
     if (userMessage) {
       addMessage(userMessage.role, userMessage.messageType, userMessage.content, []); // 실제 유저 메시지
     }
+    
     // RAG 모델로 메시지 스트리밍 전송
     const user_id = AuthService.getId(); // localStorage에서 user_id 가져오기
     if(user_id){

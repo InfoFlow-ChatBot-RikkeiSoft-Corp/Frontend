@@ -30,7 +30,6 @@ export class ChatService {
         },
         body: JSON.stringify(payload),
       });
-
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
@@ -52,7 +51,6 @@ export class ChatService {
           console.log("Received chunk:", chunk);
           onStreamedResponse(accumulatedContent); // 콜백 함수에 누적된 응답을 전달합니다.
         }
-
         console.log("Streaming response completed.");
       }
     } catch (error) {

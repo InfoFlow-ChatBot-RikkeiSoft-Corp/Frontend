@@ -13,6 +13,8 @@ import { useTranslation } from 'react-i18next';
 import { Transition } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
 import { API_AUTH_BASE_URL } from '../constants/apiEndpoints';
+import { API_ENDPOINTS } from '../constants/apiEndpoints';
+import { AuthService } from '../service/AuthService';
 
 interface UserSettingsModalProps {  
   isVisible: boolean;   
@@ -30,7 +32,9 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   const { userSettings, setUserSettings } = useContext(UserContext);
   const [activeTab, setActiveTab] = useState<Tab>(Tab.GENERAL_TAB);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileList, setFileList] = useState<Array<{ name: string; type: string; size: number; date: string }>>([]);
+  const [fileList, setFileList] = useState<Array<{
+    title: ReactI18NextChildren | Iterable<ReactI18NextChildren>; name: string; type: string; size: number; date: string 
+}>>([]);
   const [isDragging, setIsDragging] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -62,56 +66,101 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
   };
 
   const handleFileUpload = async () => {
-    if (selectedFile) {
-      try {
-        const fileData = await selectedFile.arrayBuffer();
-        const fileInfo = {
-          name: selectedFile.name,
-          type: selectedFile.type,
-          size: selectedFile.size,
-          data: Array.from(new Uint8Array(fileData)),
-        };
-        localStorage.setItem(`uploadedFile_${selectedFile.name}`, JSON.stringify(fileInfo));
-        NotificationService.handleSuccess('File uploaded successfully.');
-        setSelectedFile(null);
-        setPreview(null);
-        loadFileList();
-      } catch (error) {
-        console.error('Failed to upload file:', error);
-        NotificationService.handleUnexpectedError(new Error('Failed to upload file'));
+    const username = AuthService.getUsername();
+    if (!username) {
+      NotificationService.handleError("Username not found. Please log in again.");
+      return;
+    }
+
+    if (!selectedFile) {
+      NotificationService.handleError("No file selected.");
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+
+      const response = await fetch(API_ENDPOINTS.UPLOAD_FILE, {
+        method: "POST",
+        body: formData,
+        headers: {
+          username,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to upload file.");
       }
+
+      const data = await response.json();
+      NotificationService.handleSuccess("File uploaded successfully.");
+      console.log("Uploaded metadata:", data.metadata);
+
+      // Refresh file list after upload
+      loadFileList();
+    } catch (error) {
+      console.error("Error during file upload:", error);
+      NotificationService.handleUnexpectedError(new Error("Failed to upload file"));
     }
   };
 
-  const loadFileList = () => {
-    const files: Array<{ name: string; type: string; size: number, date: string}> = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('uploadedFile_')) {
-        try {
-          const fileInfo = JSON.parse(localStorage.getItem(key) || '{}');
-          if (fileInfo.name && fileInfo.type && fileInfo.size) {
-            files.push({
-              name: fileInfo.name,
-              type: getFileExtension(fileInfo.name),
-              size: fileInfo.size,
-              date: new Date().toISOString(),
-            });
-          } else {
-            console.warn(`Invalid file info for key: ${key}`);
-          }
-        } catch (error) {
-          console.error(`Failed to parse file info for key: ${key}`, error);
-        }
-      }
+  const loadFileList = async () => {
+    const username = AuthService.getUsername();
+    if (!username) {
+      NotificationService.handleError("Username not found. Please log in again.");
+      return;
     }
-    setFileList(files);
+    try {
+      const response = await fetch(API_ENDPOINTS.LIST_FILES, {
+        method: "GET",
+        headers: {
+          username,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch file list.");
+      }
+
+      const data = await response.json();
+
+      console.log("Loaded file list from API:", data.files);
+      setFileList(data.files || []);
+    } catch (error) {
+      console.error("Error loading file list:", error);
+      NotificationService.handleUnexpectedError(new Error("Failed to load file list"));
+    }
   };
 
-  const handleFileDelete = (fileName: string) => {
-    localStorage.removeItem(`uploadedFile_${fileName}`);
-    NotificationService.handleSuccess('File deleted successfully.');
-    loadFileList();
+  const handleFileDelete = async (name: string) => {
+    try {
+      const username = AuthService.getUsername();
+      if (!username) {
+        NotificationService.handleError("Username not found. Please log in again.");
+        return;
+      }
+
+      const response = await fetch(`${API_ENDPOINTS.DELETE_FILE}/${encodeURIComponent(name)}`, {
+        method: "DELETE",
+        headers: {
+          username,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to delete file.");
+      }
+
+      NotificationService.handleSuccess(`File "${name}" deleted successfully.`);
+      loadFileList(); // Refresh file list
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      NotificationService.handleUnexpectedError(new Error("Failed to delete file"));
+    }
   };
 
   const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
@@ -267,10 +316,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                   Weblink
                 </div>
                 <div className="logout-button-container">
-                  <button
-                    onClick={handleLogout}
-                    className="logout-button"
-                  >
+                  <button onClick={handleLogout} className="logout-button">
                     Logout
                   </button>
                 </div>
@@ -285,12 +331,12 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                         name="theme"
                         className="custom-select dark:custom-select border-gray-300 border rounded p-2 dark:bg-gray-800 dark:text-white dark:border-gray-600"
                         value={userSettings.userTheme}
-                        onChange={(e) => {
+                        onChange={(e) =>
                           setUserSettings({
                             ...userSettings,
                             userTheme: e.target.value as Theme,
-                          });
-                        }}
+                          })
+                        }
                       >
                         <option value="dark">{t('dark-option')}</option>
                         <option value="light">{t('light-option')}</option>
@@ -300,9 +346,9 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                   </div>
                 )}
                 {activeTab === Tab.STORAGE_TAB && (
-                <>
                   <div className="container bg-white p-4 rounded-lg shadow-md">
-                    <div className="file-upload-box"
+                    <div
+                      className="file-upload-box"
                       onDragOver={handleDragOver}
                       onDrop={handleDrop}
                     >
@@ -315,7 +361,9 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                           </div>
                           <div className="file-info">
                             <p className="file-name">{selectedFile.name}</p>
-                            <p className="file-size">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
+                            <p className="file-size">
+                              {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
+                            </p>
                           </div>
                         </div>
                       )}
@@ -328,64 +376,32 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                           />
                           <p className="text-lg font-semibold">Drag and Drop</p>
                           <p className="or-text">or</p>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              (
+                                document.querySelector('input[type="file"]') as HTMLInputElement
+                              )?.click()
+                            }
+                            className="file-upload-box button"
+                          >
+                            Select File
+                          </button>
+                          <input
+                            type="file"
+                            id="file-upload"
+                            name="file-upload"
+                            className="hidden"
+                            onChange={handleFileSelect}
+                            accept={acceptedFileExtensions}
+                          />
                         </>
                       )}
-                      <button
-                        type="button"
-                        onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement)?.click()}
-                        className="file-upload-box button"
-                      >
-                        Select File
-                      </button>
-                      <input
-                        type="file"
-                        id="file-upload"
-                        name="file-upload"
-                        className="hidden"
-                        onChange={handleFileSelect}
-                        accept={acceptedFileExtensions}
-                      />
                     </div>
-                    <div className="save-button-box mt-4 text-center">
-                      <button
-                        onClick={handleFileUpload}
-                        disabled={!selectedFile}
-                        className="save-button-box button"
-                      >
-                        Upload
-                      </button>
-                    </div>
-                  </div>
-                  <div className="table-container">
-                    <table className="table-auto">
-                      <thead>
-                        <tr>
-                          <th>Name</th>
-                          <th>Type</th>
-                          <th>Size</th>
-                          <th>Upload date</th>
-                          <th></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {fileList.length > 0 ? (
-                          fileList.map((file, index) => (
-                            <tr key={index}>
-                              <td title={file.name}>{file.name}</td>
-                              <td>.{getFileExtension(file.name)}</td>
-                              <td>{(file.size / 1024).toFixed(2)} KB</td>
-                              <td>{new Date(file.date).toLocaleString()}</td> {/* Display the upload date */}
-                              <td className="py-2 px-4 text-sm text-gray-900 dark:text-white w-1/4 truncate">
-                                <button
-                                  onClick={() => handleFileDelete(file.name)}
-                                  className="py-1 px-2 bg-red-500 text-white rounded hover:bg-red-700"
-                                >
-                                  <TrashIcon className="h-4 w-4" aria-hidden="true" />
-                                </button>
-                              </td>
-                            </tr>
-                          ))
-                        ) : (
+                    <div className="mt-4">
+                      <h4>Uploaded Files:</h4>
+                      <table>
+                        <thead>
                           <tr>
                             <td
                               colSpan={5}
@@ -394,9 +410,34 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                               No files found
                             </td>
                           </tr>
-                        )}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody>
+                          {fileList.length > 0 ? (
+                            fileList.map((file, index) => (
+                              <tr key={index}>
+                                <td>{file.title}</td>
+                                <td>{file.type}</td>
+                                <td>{(file.size / 1024).toFixed(2)} KB</td>
+                                <td>
+                                  <button
+                                    onClick={() => handleFileDelete(file.title)}
+                                    className="py-1 px-2 bg-red-500 text-white rounded hover:bg-red-700"
+                                  >
+                                    Delete
+                                  </button>
+                                </td>
+                              </tr>
+                            ))
+                          ) : (
+                            <tr>
+                              <td colSpan={4} className="text-center">
+                                No files found
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </>
               )}
@@ -468,6 +509,6 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
       </div>
     </Transition>
   );
-};
+}  
 
 export default UserSettingsModal;
