@@ -295,7 +295,6 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
     }
   };
 
-
   const scrollToBottom = () => {
     const chatContainer = document.getElementById('chat-container');
     if (chatContainer) {
