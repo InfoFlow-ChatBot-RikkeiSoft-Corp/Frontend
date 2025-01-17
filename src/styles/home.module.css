@@ -18,6 +18,7 @@
   position: sticky;
   top: 0;
   z-index: 20;
+  border-bottom: #fff .6px solid;
 }
 
 .navContainer {
@@ -36,7 +37,7 @@
   text-decoration: none;
   font-size: 2rem;
   font-weight: bold;
-  font-family: 'Orbitron', sans-serif;
+  font-family: Georgia, serif;
 }
 
 .navMenu {
@@ -53,7 +54,7 @@
   padding: 0.5rem 1rem;
   height: 100%;
   border-bottom: 3px solid transparent;
-  font-family: 'Chakra Petch', sans-serif;
+  font-family: Georgia, serif;
 }
 
 .navItem {
@@ -152,19 +153,19 @@
 }
 
 /* Info Section */
-.container {
+.Infocontainer {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 40px;
+  gap: 10px;
   background-color: #111827;
   padding: 4rem 6rem;
 }
 
 .heading {
   font-weight: 500;
-  font-size: 2.1rem;
-  font-family: "Archivo", sans-serif;
+  font-size: 4rem;
+  font-family: "Times New Roman", serif;
   color: #046cf1;
 }
 
@@ -184,9 +185,16 @@
   padding: 20px;
   align-items: center;
   min-height: auto;
-  box-shadow: rgba(14, 30, 37, 0.12) 0px 2px 4px 0px, rgba(14, 30, 37, 0.32) 0px 2px 16px 0px;
+  box-shadow: rgba(94, 157, 184, 0.12) 0px 2px 4px 0px, rgba(61, 145, 181, 0.32) 0px 2px 16px 0px;
   border-radius: 20px;
   background-color: #fff;
+}
+
+.cardTitle {
+  color: #046cf1;
+  font-family: serif;
+  font-size: 1.5rem;
+  font-weight: bold;
 }
 
 .card:nth-child(2) {
@@ -204,38 +212,35 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  font-family: 'Chakra Petch', sans-serif;
+  font-family: 'Georgia', sans-serif;
   letter-spacing: 1px;
   font-weight: lighter;
 }
 
-.cardTitle {
-  color: #046cf1;
-  font-family: "Archivo", sans-serif;
-}
-
 /* Footer Section */
 .footer {
-  padding: 30px 6rem;
-  background-color: #edf2f7;
+  background-color: #0c1c3e;
   display: flex;
-  align-items: center;
+  width: 100%;
+}
+
+.footer .container {
+  background-color: #0c1c3e;
+  display: flex;
   justify-content: space-between;
-  text-align: center;
+  flex-direction: row;
+  width: 100%;
+  padding: 20px 2.5rem;
 }
 
 .footer .header {
-  font-size: 15px;
+  font-size: 20px;
   font-family: 'Chakra Petch', sans-serif;
-}
-
-.footer .header a {
-  text-decoration: none;
-  color: #046cf1;
-}
-
-.footer .header a:hover {
-  color: #080fd4;
+  color: #fff;
+  display: flex;
+  flex-direction: row;
+  align-items: left;
+  margin-left: 0%;
 }
 
 .footer .handles {
@@ -243,18 +248,13 @@
   gap: 15px;
 }
 
-.footer .handles a {
-  cursor: pointer;
-  text-decoration: none;
-  color: #046cf1;
-}
-
-.footer .handles a:hover {
-  color: #080fd4;
-}
-
-.footer .handles svg {
-  height: 30px;
+.footer .handles .logo {
+  max-width: 100px; /* Set a maximum width */
+  max-height: 100px; /* Set a maximum height */
+  width: auto; /* Maintain aspect ratio */
+  height: auto; /* Maintain aspect ratio */
+  background-color: #fff;
+  border-radius: 5%;
 }
 
 @media only screen and (min-width: 700px) and (max-width: 750px) {

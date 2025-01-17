@@ -40,7 +40,7 @@ const Homepage = () => {
       </section>
 
       {/* Info Section */}
-      <section className={styles.container}>
+      <section className={styles.Infocontainer}>
         <h2 className={styles.heading}>Why Choose InfoFlow Chat?</h2>
         <div className={styles.cards}>
           <div className={styles.card}>
@@ -93,7 +93,7 @@ const Homepage = () => {
           </div>
           <div className={styles.handles}>
             <a href="https://rikkeisoft.com" target="_blank" rel="noopener noreferrer">
-              <img src="/path/to/rikkeisoft-logo.png" alt="RikkeiSoft Logo" className={styles.logo} />
+              <img src="/logo.png" alt="RikkeiSoft Logo" className={styles.logo} />
             </a>
           </div>
         </div>
