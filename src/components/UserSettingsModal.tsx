@@ -5,6 +5,7 @@ import {
   XMarkIcon,
   TrashIcon,
   LinkIcon,
+  PencilIcon,
 } from '@heroicons/react/24/outline';
 import { Theme, UserContext } from '../UserContext';
 import '../styles/UserSettingsModal.css';
@@ -15,6 +16,8 @@ import { useNavigate } from 'react-router-dom';
 import { API_AUTH_BASE_URL } from '../constants/apiEndpoints';
 import { API_ENDPOINTS } from '../constants/apiEndpoints';
 import { AuthService } from '../service/AuthService';
+import PromptTab from './PromptTab'; // Import the new PromptTab component
+import GeneralTab from './GeneralTab'; // Import the new GeneralTab component
 
 interface UserSettingsModalProps {  
   isVisible: boolean;   
@@ -25,6 +28,25 @@ enum Tab {
   GENERAL_TAB = 'General',
   STORAGE_TAB = 'Storage',
   WEBLINK_TAB = 'Weblink',
+  PROMPT_TAB = 'Prompt',
+}
+
+// 파일 메타데이터 타입 정의
+interface FileMetadata {
+  id: number;
+  title: string;
+  type: string;
+  size: number;
+  upload_date: string;
+}
+
+// 웹링크 메타데이터 타입 정의
+interface WeblinkMetadata {
+  id: number;
+  title: string;
+  type: 'weblink';
+  url: string;
+  upload_date: string;
 }
 
 interface DocumentItem {
@@ -111,10 +133,10 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
 
       const data = await response.json();
       NotificationService.handleSuccess("File uploaded successfully.");
-      console.log("Uploaded metadata:", data.metadata);
-
-      // Refresh file list after upload
+      
+      // 파일 리스트 새로고침
       loadFileList();
+      setSelectedFile(null); // 선택된 파일 초기화
     } catch (error) {
       console.error("Error during file upload:", error);
       NotificationService.handleUnexpectedError(new Error("Failed to upload file"));
@@ -129,7 +151,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     }
 
     try {
-        const response = await fetch(API_ENDPOINTS.LIST_FILES, {
+        const response = await fetch(`${API_ENDPOINTS.LIST_FILES}?is_url=false`, {
             method: "GET",
             headers: {
                 username,
@@ -142,7 +164,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
         }
 
         const data = await response.json();
-        
+
         // 파일과 웹링크 분리하여 각각의 state에 저장
         const files = (data.files || [])
             .filter((item: DocumentItem) => item.type === 'file')
@@ -163,6 +185,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
 
         setFileList(files);
         setWeblinkList(weblinks);
+
     } catch (error) {
         console.error("Error loading document list:", error);
         NotificationService.handleUnexpectedError(new Error("Failed to load document list"));
@@ -264,12 +287,12 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
       NotificationService.handleError("Username not found. Please log in again.");
       return;
     }
- 
+
     if (!weblink) {
       NotificationService.handleError("No Weblink provided.");
       return;
     }
- 
+
     try {
       const response = await fetch(API_ENDPOINTS.UPLOAD_FILE, {
         method: "POST",
@@ -278,16 +301,15 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
           username,
         },
         body: JSON.stringify({
-          title: weblink, // Weblink 제목
-          url: weblink,   // Weblink URL
+          url: weblink,
         }),
       });
- 
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to upload Weblink.");
       }
- 
+
       const data = await response.json();
       NotificationService.handleSuccess("Weblink uploaded successfully.");
       console.log("Uploaded Weblink metadata:", data);
@@ -298,33 +320,35 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
       // 즉시 리스트 갱신
       await loadFileList();
       await loadWeblinkList();
+
     } catch (error) {
       console.error("Error during Weblink upload:", error);
       NotificationService.handleUnexpectedError(new Error("Failed to upload Weblink"));
     }
   };
- 
+
   const loadWeblinkList = async () => {
     const username = AuthService.getUsername();
     if (!username) {
       NotificationService.handleError("Username not found. Please log in again.");
       return;
     }
- 
+
     try {
-      const response = await fetch(API_ENDPOINTS.LIST_FILES, {
+      const response = await fetch(`${API_ENDPOINTS.LIST_FILES}?is_url=true`, {
         method: "GET",
         headers: {
           username,
         },
       });
- 
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to fetch Weblink list.");
       }
- 
+
       const data = await response.json();
+
       console.log("Loaded data from API:", data); // 전체 응답 데이터 확인
 
       // 웹링크만 필터링
@@ -336,20 +360,21 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
         }));
 
       console.log("Filtered weblinks:", weblinks); // 필터링된 웹링크 확인
+
       setWeblinkList(weblinks);
     } catch (error) {
       console.error("Error loading Weblink list:", error);
       NotificationService.handleUnexpectedError(new Error("Failed to load Weblink list"));
     }
   };
- 
+
   const handleWeblinkDelete = async (link: string) => {
     const username = AuthService.getUsername();
     if (!username) {
       NotificationService.handleError("Username not found. Please log in again.");
       return;
     }
- 
+
     try {
       const response = await fetch(`${API_ENDPOINTS.DELETE_FILE}/${encodeURIComponent(link)}`, {
         method: "DELETE",
@@ -357,12 +382,12 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
           username,
         },
       });
- 
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to delete Weblink.");
       }
- 
+
       NotificationService.handleSuccess(`Weblink "${link}" deleted successfully.`);
       loadWeblinkList(); // Refresh Weblink list
     } catch (error) {
@@ -375,7 +400,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     <Transition show={isVisible} as={React.Fragment}>
       <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 px-4">
         <Transition.Child
-          as="div"
+          as={React.Fragment}
           enter="ease-out duration-300"
           enterFrom="opacity-0 scale-95"
           enterTo="opacity-100 scale-100"
@@ -385,7 +410,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
         >
           <div
             ref={dialogRef}
-            className="flex flex-col bg-white dark:bg-gray-850 rounded-lg w-full max-w-2xl mx-auto overflow-hidden"
+            className="flex flex-col bg-white dark:bg-gray-850 rounded-lg w-full mx-auto overflow-hidden"
             style={{ height: '90vh', width: '170vh' }}
           >
             <div
@@ -431,6 +456,15 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                   <LinkIcon className="w-4 h-4 mr-3" aria-hidden="true" />
                   Weblink
                 </div>
+                <div
+                  className={`cursor-pointer p-4 flex items-center ${
+                    activeTab === Tab.PROMPT_TAB ? 'bg-gray-200 dark:bg-gray-700' : ''
+                  }`}
+                  onClick={() => setActiveTab(Tab.PROMPT_TAB)}
+                >
+                  <PencilIcon className="w-4 h-4 mr-3" aria-hidden="true" />
+                  Prompt
+                </div>
                 <div className="logout-button-container">
                   <button onClick={handleLogout} className="logout-button">
                     Logout
@@ -438,29 +472,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                 </div>
               </div>
               <div className="flex-1 p-4">
-                {activeTab === Tab.GENERAL_TAB && (
-                  <div className="flex flex-col space-y-4">
-                    <div className="flex items-center justify-between text-white dark:text-white">
-                      <label htmlFor="theme">{t('theme-label')}</label>
-                      <select
-                        id="theme"
-                        name="theme"
-                        className="custom-select text-white dark:custom-select border-gray-300 border rounded p-2 dark:bg-gray-800 dark:text-white dark:border-gray-600"
-                        value={userSettings.userTheme}
-                        onChange={(e) =>
-                          setUserSettings({
-                            ...userSettings,
-                            userTheme: e.target.value as Theme,
-                          })
-                        }
-                      >
-                        <option value="dark">{t('dark-option')}</option>
-                        <option value="light">{t('light-option')}</option>
-                        <option value="system">{t('system-option')}</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
+              {activeTab === Tab.GENERAL_TAB && <GeneralTab />}
                 {activeTab === Tab.STORAGE_TAB && (
                   <div className="container bg-white p-4 rounded-lg shadow-md">
                     <div
@@ -625,6 +637,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                     </div>
                   </div>
                 )}
+                {activeTab === Tab.PROMPT_TAB && <PromptTab />}
               </div>
             </div>
           </div>

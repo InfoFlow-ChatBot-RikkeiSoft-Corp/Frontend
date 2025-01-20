@@ -18,6 +18,14 @@
   max-width: 100%; /* Ensure it does not exceed the container */
 }
 
+/* Theme-text*/
+.theme-text {
+  font-size: 1.125rem; /* Equivalent to `text-lg` */
+  font-weight: 100;
+  margin: 0;
+  color: #ffffff;
+}
+
 /* Custom scrollbar styles */
 #user-settings-content::-webkit-scrollbar {
   width: 12px;
