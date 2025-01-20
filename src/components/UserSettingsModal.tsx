@@ -27,6 +27,24 @@ enum Tab {
   WEBLINK_TAB = 'Weblink',
 }
 
+// 파일 메타데이터 타입 정의
+interface FileMetadata {
+  id: number;
+  title: string;
+  type: string;
+  size: number;
+  upload_date: string;
+}
+
+// 웹링크 메타데이터 타입 정의
+interface WeblinkMetadata {
+  id: number;
+  title: string;
+  type: 'weblink';
+  url: string;
+  upload_date: string;
+}
+
 const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClose }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
   const { userSettings, setUserSettings } = useContext(UserContext);
@@ -96,10 +114,10 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
 
       const data = await response.json();
       NotificationService.handleSuccess("File uploaded successfully.");
-      console.log("Uploaded metadata:", data.metadata);
-
-      // Refresh file list after upload
+      
+      // 파일 리스트 새로고침
       loadFileList();
+      setSelectedFile(null); // 선택된 파일 초기화
     } catch (error) {
       console.error("Error during file upload:", error);
       NotificationService.handleUnexpectedError(new Error("Failed to upload file"));
@@ -114,7 +132,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     }
 
     try {
-        const response = await fetch(API_ENDPOINTS.LIST_FILES, {
+        const response = await fetch(`${API_ENDPOINTS.LIST_FILES}?is_url=false`, {
             method: "GET",
             headers: {
                 username,
@@ -127,17 +145,14 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
         }
 
         const data = await response.json();
-
-        // API 응답 데이터를 변환
-        const files = (data.files || []).map((file: any) => ({
-            name: file.title, // title을 name으로 변환
+        const files = (data.files || []).map((file: FileMetadata) => ({
+            name: file.title,
             type: file.type,
             size: file.size,
             date: file.upload_date,
         }));
 
-        console.log("Loaded file list from API:", files); // 변환된 데이터 디버깅
-        setFileList(files); // 변환된 데이터를 상태로 설정
+        setFileList(files);
     } catch (error) {
         console.error("Error loading file list:", error);
         NotificationService.handleUnexpectedError(new Error("Failed to load file list"));
@@ -239,12 +254,12 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
       NotificationService.handleError("Username not found. Please log in again.");
       return;
     }
- 
+
     if (!weblink) {
       NotificationService.handleError("No Weblink provided.");
       return;
     }
- 
+
     try {
       const response = await fetch(API_ENDPOINTS.UPLOAD_FILE, {
         method: "POST",
@@ -253,66 +268,67 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
           username,
         },
         body: JSON.stringify({
-          title: weblink, // Weblink 제목
-          url: weblink,   // Weblink URL
+          url: weblink,
         }),
       });
- 
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to upload Weblink.");
       }
- 
+
       const data = await response.json();
       NotificationService.handleSuccess("Weblink uploaded successfully.");
-      console.log("Uploaded Weblink metadata:", data);
- 
-      // Refresh Weblink list after upload
+      
+      // 웹링크 리스트 새로고침
       loadWeblinkList();
-      setWeblink(''); // Clear input field
+      setWeblink(''); // 입력 필드 초기화
     } catch (error) {
       console.error("Error during Weblink upload:", error);
       NotificationService.handleUnexpectedError(new Error("Failed to upload Weblink"));
     }
   };
- 
+
   const loadWeblinkList = async () => {
     const username = AuthService.getUsername();
     if (!username) {
       NotificationService.handleError("Username not found. Please log in again.");
       return;
     }
- 
+
     try {
-      const response = await fetch(API_ENDPOINTS.LIST_FILES, {
+      const response = await fetch(`${API_ENDPOINTS.LIST_FILES}?is_url=true`, {
         method: "GET",
         headers: {
           username,
         },
       });
- 
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to fetch Weblink list.");
       }
- 
+
       const data = await response.json();
- 
-      console.log("Loaded Weblink list from API:", data.weblinks);
-      setWeblinkList(data.weblinks || []);
+      const weblinks = (data.files || []).map((weblink: WeblinkMetadata) => ({
+        link: weblink.url,
+        date: weblink.upload_date,
+      }));
+
+      setWeblinkList(weblinks);
     } catch (error) {
       console.error("Error loading Weblink list:", error);
       NotificationService.handleUnexpectedError(new Error("Failed to load Weblink list"));
     }
   };
- 
+
   const handleWeblinkDelete = async (link: string) => {
     const username = AuthService.getUsername();
     if (!username) {
       NotificationService.handleError("Username not found. Please log in again.");
       return;
     }
- 
+
     try {
       const response = await fetch(`${API_ENDPOINTS.DELETE_FILE}/${encodeURIComponent(link)}`, {
         method: "DELETE",
@@ -320,12 +336,12 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
           username,
         },
       });
- 
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to delete Weblink.");
       }
- 
+
       NotificationService.handleSuccess(`Weblink "${link}" deleted successfully.`);
       loadWeblinkList(); // Refresh Weblink list
     } catch (error) {
