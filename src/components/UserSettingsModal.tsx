@@ -338,7 +338,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     <Transition show={isVisible} as={React.Fragment}>
       <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 px-4">
         <Transition.Child
-          as="div"
+          as={React.Fragment}
           enter="ease-out duration-300"
           enterFrom="opacity-0 scale-95"
           enterTo="opacity-100 scale-100"
@@ -403,8 +403,8 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
               <div className="flex-1 p-4">
                 {activeTab === Tab.GENERAL_TAB && (
                   <div className="flex flex-col space-y-4">
-                    <div className="flex items-center justify-between text-white dark:text-white">
-                      <label htmlFor="theme">{t('theme-label')}</label>
+                    <div className="flex items-center justify-between text-white">
+                    <label htmlFor="theme" className='theme-text'>{t('theme-label')}</label>
                       <select
                         id="theme"
                         name="theme"
