@@ -348,7 +348,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
         >
           <div
             ref={dialogRef}
-            className="flex flex-col bg-white dark:bg-gray-850 rounded-lg w-full max-w-2xl mx-auto overflow-hidden"
+            className="flex flex-col bg-white dark:bg-gray-850 rounded-lg w-full mx-auto overflow-hidden"
             style={{ height: '90vh', width: '170vh' }}
           >
             <div
