@@ -49,6 +49,21 @@ interface WeblinkMetadata {
   upload_date: string;
 }
 
+interface DocumentItem {
+  type: 'file' | 'weblink';
+  title: string;
+  upload_date: string;
+}
+
+interface FileItem extends DocumentItem {
+  file_type: string;
+  size: number;
+}
+
+interface WeblinkItem extends DocumentItem {
+  url: string;
+}
+
 const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClose }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
   const { userSettings, setUserSettings } = useContext(UserContext);
@@ -149,17 +164,31 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
         }
 
         const data = await response.json();
-        const files = (data.files || []).map((file: FileMetadata) => ({
-            name: file.title,
-            type: file.type,
-            size: file.size,
-            date: file.upload_date,
-        }));
+
+        // 파일과 웹링크 분리하여 각각의 state에 저장
+        const files = (data.files || [])
+            .filter((item: DocumentItem) => item.type === 'file')
+            .map((file: FileItem) => ({
+                name: file.title,
+                type: file.file_type,
+                size: file.size,
+                date: file.upload_date,
+            }));
+
+        const weblinks = (data.files || [])
+            .filter((item: DocumentItem) => item.type === 'weblink')
+            .map((weblink: WeblinkItem) => ({
+                link: weblink.url,
+                title: weblink.title,
+                date: weblink.upload_date,
+            }));
 
         setFileList(files);
+        setWeblinkList(weblinks);
+
     } catch (error) {
-        console.error("Error loading file list:", error);
-        NotificationService.handleUnexpectedError(new Error("Failed to load file list"));
+        console.error("Error loading document list:", error);
+        NotificationService.handleUnexpectedError(new Error("Failed to load document list"));
     }
   };
 
@@ -283,10 +312,15 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
 
       const data = await response.json();
       NotificationService.handleSuccess("Weblink uploaded successfully.");
+      console.log("Uploaded Weblink metadata:", data);
+ 
+      // 웹링크 입력 필드 초기화
+      setWeblink('');
       
-      // 웹링크 리스트 새로고침
-      loadWeblinkList();
-      setWeblink(''); // 입력 필드 초기화
+      // 즉시 리스트 갱신
+      await loadFileList();
+      await loadWeblinkList();
+
     } catch (error) {
       console.error("Error during Weblink upload:", error);
       NotificationService.handleUnexpectedError(new Error("Failed to upload Weblink"));
@@ -314,10 +348,18 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
       }
 
       const data = await response.json();
-      const weblinks = (data.files || []).map((weblink: WeblinkMetadata) => ({
-        link: weblink.url,
-        date: weblink.upload_date,
-      }));
+
+      console.log("Loaded data from API:", data); // 전체 응답 데이터 확인
+
+      // 웹링크만 필터링
+      const weblinks = (data.files || [])
+        .filter((item: DocumentItem) => item.type === 'weblink')
+        .map((weblink: WeblinkItem) => ({
+          link: weblink.url,
+          date: weblink.upload_date
+        }));
+
+      console.log("Filtered weblinks:", weblinks); // 필터링된 웹링크 확인
 
       setWeblinkList(weblinks);
     } catch (error) {
