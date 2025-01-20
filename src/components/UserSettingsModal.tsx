@@ -314,11 +314,16 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
       }
 
       const data = await response.json();
-      const weblinks = (data.files || []).map((weblink: WeblinkMetadata) => ({
-        link: weblink.url,
-        date: weblink.upload_date,
-      }));
+      console.log("API Response:", data);
 
+      const weblinks = (data.files || [])
+        .filter((item: WeblinkMetadata) => item.type === 'weblink')
+        .map((weblink: WeblinkMetadata) => ({
+          link: weblink.title,
+          date: weblink.upload_date
+        }));
+
+      console.log("Processed weblinks:", weblinks);
       setWeblinkList(weblinks);
     } catch (error) {
       console.error("Error loading Weblink list:", error);
