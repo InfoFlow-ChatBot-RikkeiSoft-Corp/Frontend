@@ -17,6 +17,7 @@ import { API_AUTH_BASE_URL } from '../constants/apiEndpoints';
 import { API_ENDPOINTS } from '../constants/apiEndpoints';
 import { AuthService } from '../service/AuthService';
 import PromptTab from './PromptTab'; // Import the new PromptTab component
+import GeneralTab from './GeneralTab'; // Import the new GeneralTab component
 
 interface UserSettingsModalProps {  
   isVisible: boolean;   
@@ -413,29 +414,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                 </div>
               </div>
               <div className="flex-1 p-4">
-              {activeTab === Tab.GENERAL_TAB && (
-                <div className="flex flex-col h-full w-full p-4 bg-white dark:bg-gray-850 rounded-lg shadow-md">
-                  <div className="flex items-center justify-between text-white h-full w-full">
-                    <label htmlFor="theme" className='theme-text'>{t('theme-label')}</label>
-                    <select
-                      id="theme"
-                      name="theme"
-                      className="custom-select text-white dark:custom-select border-gray-300 border rounded p-2 dark:bg-gray-800 dark:text-white dark:border-gray-600"
-                      value={userSettings.userTheme}
-                      onChange={(e) =>
-                        setUserSettings({
-                          ...userSettings,
-                          userTheme: e.target.value as Theme,
-                        })
-                      }
-                    >
-                      <option value="dark">{t('dark-option')}</option>
-                      <option value="light">{t('light-option')}</option>
-                      <option value="system">{t('system-option')}</option>
-                    </select>
-                  </div>
-                </div>
-              )}
+              {activeTab === Tab.GENERAL_TAB && <GeneralTab />}
                 {activeTab === Tab.STORAGE_TAB && (
                   <div className="container bg-white p-4 rounded-lg shadow-md">
                     <div
