@@ -9,9 +9,10 @@ export const GOOGLE_LOGIN = `${API_AUTH_BASE_URL}/google-login`;
 export const UPLOAD = `${API_FILES_BASE_URL}/upload`;
 export const DELETE = `${API_FILES_BASE_URL}/delete`;
 export const LIST_FILES =`${API_FILES_BASE_URL}/list_files`;
+export const API_PROMPT_BASE_URL = 'http://127.0.0.1:5000/api/prompt';
 
 export const API_ENDPOINTS = {
-    LOGIN: '/api/auth/login', // 올바른 경로
+    LOGIN: '/api/auth/login',
     LOGOUT: '/api/auth/logout',
     SIGNIN: '/api/auth/google-login',
     RAG_QUERY: "/api/rag/query",
@@ -19,5 +20,10 @@ export const API_ENDPOINTS = {
     UPLOAD_FILE: '/api/files/upload',
     LIST_FILES: '/api/files/list_files',
     DELETE_FILE: '/api/files/delete',
-    NEW_CONVERSATION: "api/chat/new"
-  };
+    NEW_CONVERSATION: "api/chat/new",
+    GET_ALL_PROMPTS: `${API_PROMPT_BASE_URL}/prompts`,
+    GET_PROMPT: `${API_PROMPT_BASE_URL}/prompt`,
+    ADD_PROMPT: `${API_PROMPT_BASE_URL}/prompt`,
+    UPDATE_PROMPT: `${API_PROMPT_BASE_URL}/prompt`,
+    ACTIVATE_PROMPT: `${API_PROMPT_BASE_URL}/prompt/activate`
+};

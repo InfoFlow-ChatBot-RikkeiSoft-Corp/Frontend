@@ -5,6 +5,7 @@ import {
   XMarkIcon,
   TrashIcon,
   LinkIcon,
+  PencilIcon,
 } from '@heroicons/react/24/outline';
 import { Theme, UserContext } from '../UserContext';
 import '../styles/UserSettingsModal.css';
@@ -15,6 +16,8 @@ import { useNavigate } from 'react-router-dom';
 import { API_AUTH_BASE_URL } from '../constants/apiEndpoints';
 import { API_ENDPOINTS } from '../constants/apiEndpoints';
 import { AuthService } from '../service/AuthService';
+import PromptTab from './PromptTab'; // Import the new PromptTab component
+import GeneralTab from './GeneralTab'; // Import the new GeneralTab component
 
 interface UserSettingsModalProps {  
   isVisible: boolean;   
@@ -25,6 +28,7 @@ enum Tab {
   GENERAL_TAB = 'General',
   STORAGE_TAB = 'Storage',
   WEBLINK_TAB = 'Weblink',
+  PROMPT_TAB = 'Prompt',
 }
 
 // 파일 메타데이터 타입 정의
@@ -354,7 +358,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     <Transition show={isVisible} as={React.Fragment}>
       <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 px-4">
         <Transition.Child
-          as="div"
+          as={React.Fragment}
           enter="ease-out duration-300"
           enterFrom="opacity-0 scale-95"
           enterTo="opacity-100 scale-100"
@@ -364,7 +368,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
         >
           <div
             ref={dialogRef}
-            className="flex flex-col bg-white dark:bg-gray-850 rounded-lg w-full max-w-2xl mx-auto overflow-hidden"
+            className="flex flex-col bg-white dark:bg-gray-850 rounded-lg w-full mx-auto overflow-hidden"
             style={{ height: '90vh', width: '170vh' }}
           >
             <div
@@ -410,6 +414,15 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                   <LinkIcon className="w-4 h-4 mr-3" aria-hidden="true" />
                   Weblink
                 </div>
+                <div
+                  className={`cursor-pointer p-4 flex items-center ${
+                    activeTab === Tab.PROMPT_TAB ? 'bg-gray-200 dark:bg-gray-700' : ''
+                  }`}
+                  onClick={() => setActiveTab(Tab.PROMPT_TAB)}
+                >
+                  <PencilIcon className="w-4 h-4 mr-3" aria-hidden="true" />
+                  Prompt
+                </div>
                 <div className="logout-button-container">
                   <button onClick={handleLogout} className="logout-button">
                     Logout
@@ -417,29 +430,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                 </div>
               </div>
               <div className="flex-1 p-4">
-                {activeTab === Tab.GENERAL_TAB && (
-                  <div className="flex flex-col space-y-4">
-                    <div className="flex items-center justify-between text-white dark:text-white">
-                      <label htmlFor="theme">{t('theme-label')}</label>
-                      <select
-                        id="theme"
-                        name="theme"
-                        className="custom-select text-white dark:custom-select border-gray-300 border rounded p-2 dark:bg-gray-800 dark:text-white dark:border-gray-600"
-                        value={userSettings.userTheme}
-                        onChange={(e) =>
-                          setUserSettings({
-                            ...userSettings,
-                            userTheme: e.target.value as Theme,
-                          })
-                        }
-                      >
-                        <option value="dark">{t('dark-option')}</option>
-                        <option value="light">{t('light-option')}</option>
-                        <option value="system">{t('system-option')}</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
+              {activeTab === Tab.GENERAL_TAB && <GeneralTab />}
                 {activeTab === Tab.STORAGE_TAB && (
                   <div className="container bg-white p-4 rounded-lg shadow-md">
                     <div
@@ -604,6 +595,7 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                     </div>
                   </div>
                 )}
+                {activeTab === Tab.PROMPT_TAB && <PromptTab />}
               </div>
             </div>
           </div>
