@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AuthService } from '../service/AuthService'; // Adjust the import according to your project structure
+import { ChatBubbleLeftIcon, PencilSquareIcon, TrashIcon, PlusIcon, XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
 import '../styles/PromptTab.css';
 
 interface Prompt {
@@ -47,13 +48,30 @@ const PromptTab: React.FC = () => {
     setPromptText('');
   };
 
+  const handleDeletePrompt = (id: number) => {
+    setPrompts(prompts.filter(prompt => prompt.id !== id));
+    if (selectedPrompt?.id === id) {
+      setSelectedPrompt(null);
+      setPromptText('');
+    }
+  };
+
+  const editPromptName = (prompt: Prompt) => {
+    const newName = prompt.name + ' (edited)';
+    const updatedPrompt: Prompt = { ...prompt, name: newName };
+    setPrompts(prompts.map(p => p.id === prompt.id ? updatedPrompt : p));
+  };
+
   return (
     <div className="prompt-tab-container">
       {/* Sidebar */}
       <div className="prompt-sidebar">
         <div className="scrollbar-trigger">
           <h2 className="sr-only">Prompt List</h2>
-          <button className="new-prompt-button" onClick={handleNewPrompt}>New Prompt</button>
+          <button className="new-prompt-button" onClick={handleNewPrompt}>
+            <PlusIcon className="h-4 w-4" />
+            New Prompt
+          </button>
           <nav aria-label="Prompt List">
             {prompts.map((prompt: Prompt) => (
               <div
@@ -61,7 +79,16 @@ const PromptTab: React.FC = () => {
                 className={`prompt-item ${selectedPrompt?.id === prompt.id ? 'selected' : ''}`}
                 onClick={() => handlePromptClick(prompt)}
               >
-                {prompt.name}
+                <ChatBubbleLeftIcon className="h-4 w-4" />
+                <div className="prompt-name">{prompt.name}</div>
+                <div className="button-group">
+                  <button className="edit-button" onClick={() => editPromptName(prompt)}>
+                    <PencilSquareIcon className="h-4 w-4" />
+                  </button>
+                  <button className="delete-button" onClick={() => handleDeletePrompt(prompt.id)}>
+                    <TrashIcon className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </nav>
@@ -80,6 +107,7 @@ const PromptTab: React.FC = () => {
               className="save-prompt-button"
               onClick={handleSavePrompt}
             >
+              <CheckIcon className="h-4 w-4" />
               Save
             </button>
           </>
