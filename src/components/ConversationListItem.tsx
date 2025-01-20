@@ -38,6 +38,7 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
     ConversationService.deleteConversation(convo.id)
       .then(() => {
         loadConversations();
+        navigate('/main');
       })
       .catch((error) => {
         console.error('Error deleting conversation:', error);

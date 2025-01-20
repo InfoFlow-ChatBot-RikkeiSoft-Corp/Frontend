@@ -208,7 +208,7 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
   function sendMessage(updatedMessages: ChatMessage[]) {
     setLoading(true);
     clearInputArea();
-  
+
     // 시스템 프롬프트 설정
     let systemPrompt = getFirstValidString(
       conversation?.systemPrompt,
@@ -225,31 +225,38 @@ const MainPage: React.FC<MainPageProps> = ({ className, isSidebarCollapsed, togg
       } as ChatMessage,
       ...updatedMessages,
     ];
-  
+    
+    // 사용자 메시지 추가 (마지막 메시지만) // Error of double message
+    // const userMessage = updatedMessages[updatedMessages.length - 1];
+    // if (userMessage) {
+    //   addMessage(userMessage.role, userMessage.messageType, userMessage.content, []); // 실제 유저 메시지
+    // }
+    
     // RAG 모델로 메시지 스트리밍 전송
     const user_id = AuthService.getId(); // localStorage에서 user_id 가져오기
     const conversation_id = NewConversationService.getConversationId();
-    if (user_id && conversation_id) {
-      console.log(user_id);
+    if(user_id && conversation_id){
+      console.log(user_id)
       ChatService.sendMessageStreamed(user_id, conversation_id, messages, handleStreamedResponse)
-        .catch((err) => {
-          if (err instanceof CustomError) {
-            const message: string = err.message;
-            addMessage(Role.Assistant, MessageType.Error, message, []);
-          } else {
-            NotificationService.handleUnexpectedError(
-              err,
-              "Failed to send message to RAG model."
-            );
-          }
-        })
-        .finally(() => {
-          setLoading(false); // 로딩 상태 종료
-        });
+      .catch((err) => {
+        if (err instanceof CustomError) {
+          const message: string = err.message;
+          setLoading(false);
+          addMessage(Role.Assistant, MessageType.Error, message, []);
+        } else {
+          NotificationService.handleUnexpectedError(
+            err,
+            "Failed to send message to RAG model."
+          );
+        }
+      })
+      .finally(() => {
+        setLoading(false); // 로딩 상태 종료
+      });
     } else {
       console.error("User ID not found. Please log in.");
       setLoading(false);
-    }
+    }    
   }
   
   const handleStreamedResponse = (response: string) => {
