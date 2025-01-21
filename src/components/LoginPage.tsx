@@ -7,49 +7,45 @@ import { AuthService } from '../service/AuthService'; // AuthService import
 import {NotificationService} from '../service/NotificationService'; // NotificationService import
 
 interface LoginPageProps {
-  setIsAuthenticated: (isAuthenticated: boolean) => void; // 정확한 타입 지정
-}
-
-declare global {
-  interface Window {
-    google?: any; // to avoid TypeScript errors when referencing window.google
-  }
+  setIsAuthenticated: (isAuthenticated: boolean) => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // 로딩 상태 추가
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // ------------------------------
   // 1) Normal username/password login
-  // ------------------------------
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true); // 로딩 시작
-    try {
-      const {token,user_id } = await AuthService.login(username, password); // AuthService 호출
-      AuthService.saveToken(token); // 토큰 저장
-      AuthService.saveId(user_id);
-      setIsAuthenticated(true); // 인증 상태 업데이트
-      console.log(user_id)
-      NotificationService.handleSuccess('Login successful!'); // Display success notification
-      navigate('/main'); // 메인 페이지로 리디렉션
+    setIsLoading(true);
 
+    try {
+      // Log in via AuthService
+      const { token, user_id ,is_admin} = await AuthService.login(username, password);
+
+      // Save token & user_id in localStorage
+      AuthService.saveToken(token);
+      AuthService.saveId(user_id);
+      AuthService.saveIsAdmin(is_admin);
+
+      setIsAuthenticated(true);
+      NotificationService.handleSuccess('Login successful!');
+      navigate('/main');
     } catch (error: any) {
-      NotificationService.handleError(error.response?.data?.error || 'Login failed. Please try again.'); // Display error notification
+      NotificationService.handleError(
+        error.response?.data?.error || 'Login failed. Please try again.'
+      );
     } finally {
-      setIsLoading(false); // 로딩 종료
+      setIsLoading(false);
     }
   };
 
-  // ------------------------------
-  // 2) Google OAuth via Popup
-  // ------------------------------
-  // a) Open popup pointing to /google-redirect
+  // 2) Google OAuth via popup
   const handleGoogleLoginClick = () => {
-    const width = 600, height = 600;
+    const width = 600;
+    const height = 600;
     const left = window.screenX + (window.innerWidth - width) / 2;
     const top = window.screenY + (window.innerHeight - height) / 2;
 
@@ -60,23 +56,21 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
     );
   };
 
-  // b) Listen for postMessage from the popup
+  // Listen for the postMessage from google callback
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // Optional: verify event.origin if you want domain security
       if (event.data?.type === 'google-auth-success') {
-        // event.data.jwt contains the token your backend sent
-        console.log('Received tokens from popup:', event.data.jwt);
+        const tokenFromGoogle = event.data.jwt;
+        console.log('Received token from popup:', tokenFromGoogle);
 
-        // Store the JWT in localStorage
-        localStorage.setItem('token', event.data.jwt);
+        // Save under the same 'token' key via AuthService
+        AuthService.saveToken(tokenFromGoogle);
 
-        // Mark user as authenticated & redirect
         setIsAuthenticated(true);
         navigate('/main');
       }
     };
-    
+
     window.addEventListener('message', handleMessage);
     return () => {
       window.removeEventListener('message', handleMessage);
@@ -94,10 +88,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
               type="text"
               id="username"
               value={username}
-              onChange= {(e) => setUsername(e.target.value)}
+              onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter email address"
               required
-              disabled={isLoading} // 로딩 중 비활성화
+              disabled={isLoading}
             />
           </div>
           <div className={styles.Inputcontainer}>
@@ -106,16 +100,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
               type="password"
               id="password"
               value={password}
-              onChange= {(e) => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter Password"
               required
-              disabled={isLoading} // 로딩 중 비활성화
+              disabled={isLoading}
             />
           </div>
           <div className={styles.footer}>
-            <button
-              type="submit"
-            >
+            <button type="submit" disabled={isLoading}>
               Login
             </button>
             <p>
@@ -124,11 +116,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
                 <Link to="/signup">Sign up</Link>
               </span>
             </p>
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '0%' }}>
-                <GoogleButton
-                    style={{ transform: 'scale(0.8)' }}
-                    onClick = {handleGoogleLoginClick} 
-                />
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <GoogleButton
+                style={{ transform: 'scale(0.8)' }}
+                onClick={handleGoogleLoginClick}
+              />
             </div>
           </div>
         </form>
