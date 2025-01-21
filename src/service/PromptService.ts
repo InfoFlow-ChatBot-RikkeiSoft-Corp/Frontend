@@ -16,6 +16,7 @@ interface NewPrompt {
 }
 
 interface UpdatePrompt {
+  prompt_name?: string;
   prompt_text?: string;
   updated_by?: string;
 }
@@ -64,6 +65,16 @@ class PromptService {
       return response.data.message;
     } catch (error) {
       throw new Error(`Error activating prompt with ID ${id}.`);
+    }
+  }
+
+  // Delete a specific prompt by ID
+  static async deletePrompt(id: number): Promise<string> {
+    try {
+      const response: AxiosResponse<{ message: string }> = await axios.delete(`${API_ENDPOINTS.UPDATE_PROMPT}/${id}`);
+      return response.data.message;
+    } catch (error) {
+      throw new Error(`Error deleting prompt with ID ${id}.`);
     }
   }
 }
