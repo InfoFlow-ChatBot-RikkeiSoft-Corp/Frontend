@@ -9,7 +9,7 @@ export const GOOGLE_LOGIN = `${API_AUTH_BASE_URL}/google-login`;
 export const UPLOAD = `${API_FILES_BASE_URL}/upload`;
 export const DELETE = `${API_FILES_BASE_URL}/delete`;
 export const LIST_FILES =`${API_FILES_BASE_URL}/list_files`;
-export const API_PROMPT_BASE_URL = 'http://127.0.0.1:5000/api/prompt';
+export const API_PROMPT_BASE_URL = 'http://127.0.0.1:5000/api/admin';
 
 export const API_ENDPOINTS = {
     LOGIN: '/api/auth/login',
