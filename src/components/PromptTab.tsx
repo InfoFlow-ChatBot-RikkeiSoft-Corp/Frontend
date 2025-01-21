@@ -14,6 +14,7 @@ const PromptTab: React.FC = () => {
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [promptText, setPromptText] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     // Fetch all prompts
@@ -25,10 +26,12 @@ const PromptTab: React.FC = () => {
   const handlePromptClick = (prompt: Prompt) => {
     setSelectedPrompt(prompt);
     setPromptText(prompt.text);
+    setIsEditing(false);
   };
 
   const handleEditPrompt = () => {
-  }
+    setIsEditing(true);
+  };
 
   const handleSavePrompt = () => {
     if (selectedPrompt) {
@@ -36,6 +39,7 @@ const PromptTab: React.FC = () => {
         .then(response => {
           console.log('Prompt updated successfully');
           setPrompts(prompts.map(p => p.id === selectedPrompt.id ? { ...p, text: promptText } : p));
+          setIsEditing(false);
         })
         .catch(error => console.error('Error updating prompt:', error));
     }
@@ -49,6 +53,7 @@ const PromptTab: React.FC = () => {
         setPrompts([...prompts, newPrompt]);
         setSelectedPrompt(newPrompt);
         setPromptText('');
+        setIsEditing(true);
       })
       .catch(error => console.error('Error adding new prompt:', error));
   };
@@ -57,11 +62,10 @@ const PromptTab: React.FC = () => {
     PromptService.deletePrompt(id)
       .then(response => {
         console.log('Prompt deleted successfully');
-        setPrompts(prompts.filter(prompt => prompt.id !== id));
-        if (selectedPrompt?.id === id) {
-          setSelectedPrompt(null);
-          setPromptText('');
-        }
+        setPrompts(prompts.filter(p => p.id !== id));
+        setSelectedPrompt(null);
+        setPromptText('');
+        setIsEditing(false);
       })
       .catch(error => console.error('Error deleting prompt:', error));
   };
@@ -107,28 +111,29 @@ const PromptTab: React.FC = () => {
       {/* Main Page */}
       <div className="prompt-main">
         <textarea
-          className="prompt-textarea"
-          value={selectedPrompt ? promptText : 'Please enter a prompt for chatbot.'}
-          onChange={handleEditPrompt}
+          className="prompt-text prompt-textarea"
+          value={promptText}
+          onChange={(e) => setPromptText(e.target.value)}
+          readOnly={!isEditing}
         />
         <div className="prompt-footer">
-          <button
-            className="edit-prompt-button"
-            onClick={() => {
-              setSelectedPrompt(null);
-              setPromptText('');
-            }}
-          >
-            <PencilSquareIcon className="h-4 w-4" />
-            Edit
-          </button>
-          <button
-            className="save-prompt-button"
-            onClick={handleSavePrompt}
-          >
-            <PlusIcon className="h-4 w-4" />
-            Save
-          </button>
+          {isEditing ? (
+            <button
+              className="save-prompt-button"
+              onClick={handleSavePrompt}
+            >
+              <PlusIcon className="h-4 w-4" />
+              Save
+            </button>
+          ) : (
+            <button
+              className="edit-prompt-button"
+              onClick={handleEditPrompt}
+            >
+              <PencilSquareIcon className="h-4 w-4" />
+              Edit
+            </button>
+          )}
         </div>
       </div>
     </div>
