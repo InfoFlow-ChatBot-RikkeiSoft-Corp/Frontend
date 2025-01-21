@@ -54,7 +54,7 @@ const App: React.FC = () => {
                   />
                 </div>
               ) : (
-                <Navigate to="/login" replace />
+                <Navigate to="/" replace />
               )
             }
           />
@@ -76,7 +76,7 @@ const App: React.FC = () => {
                   />
                 </div>
               ) : (
-                <Navigate to="/login" replace />
+                <Navigate to="/" replace />
               )
             }
           />
