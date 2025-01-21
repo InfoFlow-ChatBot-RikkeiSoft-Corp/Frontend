@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { AuthService } from '../service/AuthService'; // Adjust the import according to your project structure
-import { ChatBubbleLeftIcon, PencilSquareIcon, TrashIcon, PlusIcon, XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleLeftIcon, PencilSquareIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
+import PromptService from '../service/PromptService';
 import '../styles/PromptTab.css';
 
 interface Prompt {
   id: number;
   name: string;
   text: string;
-  created_by: string;
+  is_active: boolean;
 }
 
 const PromptTab: React.FC = () => {
@@ -17,7 +17,7 @@ const PromptTab: React.FC = () => {
 
   useEffect(() => {
     // Fetch all prompts
-    AuthService.getAllPrompts()
+    PromptService.getAllPrompts()
       .then(response => setPrompts(response))
       .catch(error => console.error('Error fetching prompts:', error));
   }, []);
@@ -27,33 +27,43 @@ const PromptTab: React.FC = () => {
     setPromptText(prompt.text);
   };
 
-  const handleEditPrompt = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setPromptText(e.target.value);
-  };
+  const handleEditPrompt = () => {
+  }
 
   const handleSavePrompt = () => {
     if (selectedPrompt) {
-      AuthService.updatePrompt(selectedPrompt.id, { prompt_text: promptText, updated_by: AuthService.getUsername() || 'unknown' })
+      PromptService.updatePrompt(selectedPrompt.id, { prompt_text: promptText, updated_by: 'current_user' }) // Replace 'current_user' with actual user
         .then(response => {
           console.log('Prompt updated successfully');
+          setPrompts(prompts.map(p => p.id === selectedPrompt.id ? { ...p, text: promptText } : p));
         })
         .catch(error => console.error('Error updating prompt:', error));
     }
   };
 
   const handleNewPrompt = () => {
-    const newPrompt: Prompt = { id: Date.now(), name: 'New Prompt', text: '', created_by: AuthService.getUsername() || 'unknown' };
-    setPrompts([...prompts, newPrompt]);
-    setSelectedPrompt(newPrompt);
-    setPromptText('');
+    const newPrompt: Prompt = { id: Date.now(), name: 'New Prompt', text: '', is_active: true };
+    PromptService.addPrompt({ prompt_name: newPrompt.name, prompt_text: newPrompt.text, created_by: 'current_user' }) // Replace 'current_user' with actual user
+      .then(response => {
+        console.log('Prompt added successfully');
+        setPrompts([...prompts, newPrompt]);
+        setSelectedPrompt(newPrompt);
+        setPromptText('');
+      })
+      .catch(error => console.error('Error adding new prompt:', error));
   };
 
   const handleDeletePrompt = (id: number) => {
-    setPrompts(prompts.filter(prompt => prompt.id !== id));
-    if (selectedPrompt?.id === id) {
-      setSelectedPrompt(null);
-      setPromptText('');
-    }
+    PromptService.deletePrompt(id)
+      .then(response => {
+        console.log('Prompt deleted successfully');
+        setPrompts(prompts.filter(prompt => prompt.id !== id));
+        if (selectedPrompt?.id === id) {
+          setSelectedPrompt(null);
+          setPromptText('');
+        }
+      })
+      .catch(error => console.error('Error deleting prompt:', error));
   };
 
   const editPromptName = (prompt: Prompt) => {
@@ -124,5 +134,5 @@ const PromptTab: React.FC = () => {
     </div>
   );
 };
-  
-  export default PromptTab;
+
+export default PromptTab;

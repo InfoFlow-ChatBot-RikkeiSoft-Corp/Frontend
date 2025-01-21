@@ -14,7 +14,6 @@ import { Transition } from '@headlessui/react';
 import { useNavigate } from 'react-router-dom';
 import { API_AUTH_BASE_URL } from '../constants/apiEndpoints';
 import { API_ENDPOINTS } from '../constants/apiEndpoints';
-import AuthService from '../service/AuthService';
 import StorageTab from './StorageTab';
 import WeblinkTab from './WeblinkTab';
 import PromptTab from './PromptTab';
