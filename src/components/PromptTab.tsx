@@ -27,7 +27,7 @@ const PromptTab: React.FC = () => {
     setPromptText(prompt.text);
   };
 
-  const handlePromptTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleEditPrompt = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setPromptText(e.target.value);
   };
 
@@ -96,25 +96,33 @@ const PromptTab: React.FC = () => {
       </div>
       {/* Main Page */}
       <div className="prompt-main">
-        {selectedPrompt && (
-          <>
-            <textarea
-              className="prompt-textarea"
-              value={promptText}
-              onChange={handlePromptTextChange}
-            />
-            <button
-              className="save-prompt-button"
-              onClick={handleSavePrompt}
-            >
-              <CheckIcon className="h-4 w-4" />
-              Save
-            </button>
-          </>
-        )}
+        <textarea
+          className="prompt-textarea"
+          value={selectedPrompt ? promptText : 'Please enter a prompt for chatbot.'}
+          onChange={handleEditPrompt}
+        />
+        <div className="prompt-footer">
+          <button
+            className="edit-prompt-button"
+            onClick={() => {
+              setSelectedPrompt(null);
+              setPromptText('');
+            }}
+          >
+            <PencilSquareIcon className="h-4 w-4" />
+            Edit
+          </button>
+          <button
+            className="save-prompt-button"
+            onClick={handleSavePrompt}
+          >
+            <PlusIcon className="h-4 w-4" />
+            Save
+          </button>
+        </div>
       </div>
     </div>
   );
-}
-
-export default PromptTab;
+};
+  
+  export default PromptTab;

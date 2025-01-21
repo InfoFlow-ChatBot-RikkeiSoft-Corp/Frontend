@@ -1,19 +1,20 @@
 import React, { useContext } from 'react';
 import { Theme, UserContext } from '../UserContext';
 import { useTranslation } from 'react-i18next';
+import '../styles/GeneralTab.css';
 
 const GeneralTab: React.FC = () => {
   const { userSettings, setUserSettings } = useContext(UserContext);
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col h-full w-full p-4 bg-white dark:bg-gray-850 rounded-lg shadow-md">
-      <div className="flex items-center justify-between text-white h-full w-full">
+    <div className={`general-tab ${userSettings.theme}`}>
+      <div className="header">
         <label htmlFor="theme" className='theme-text'>{t('theme-label')}</label>
         <select
           id="theme"
           name="theme"
-          className="custom-select text-white dark:custom-select border-gray-300 border rounded p-2 dark:bg-gray-800 dark:text-white dark:border-gray-600"
+          className={`custom-select ${userSettings.theme}`}
           value={userSettings.userTheme}
           onChange={(e) =>
             setUserSettings({
