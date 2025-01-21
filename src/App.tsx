@@ -40,7 +40,6 @@ const App: React.FC = () => {
           <Route
             path="/main"
             element={
-              isAuthenticated ? (
                 <div className="flex">
                   <Sidebar
                     className="sidebar-container flex-shrink-0"
@@ -53,16 +52,12 @@ const App: React.FC = () => {
                     toggleSidebarCollapse={toggleSidebarCollapse}
                   />
                 </div>
-              ) : (
-                <Navigate to="/login" replace />
-              )
             }
           />
 
           <Route
             path="/c/:id"
             element={
-              isAuthenticated ? (
                 <div className="flex">
                   <Sidebar
                     className="sidebar-container flex-shrink-0"
@@ -75,12 +70,10 @@ const App: React.FC = () => {
                     toggleSidebarCollapse={toggleSidebarCollapse}
                   />
                 </div>
-              ) : (
-                <Navigate to="/login" replace />
-              )
             }
           />
 
+          {/* Default Route */}
           <Route
             path="*"
             element={<Navigate to="/" replace />}
