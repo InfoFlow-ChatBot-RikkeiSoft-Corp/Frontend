@@ -80,15 +80,6 @@
   margin-bottom: 0.5rem; /* Add margin for spacing */
 }
 
-.prompt-sidebar .prompt-item svg {
-  height: 1rem; /* h-4 */
-  width: 1rem; /* w-4 */
-  stroke-width: 2; /* stroke-width="2" */
-  stroke: currentColor; /* stroke="currentColor" */
-  stroke-linecap: round; /* stroke-linecap="round" */
-  stroke-linejoin: round; /* stroke-linejoin="round" */
-}
-
 .prompt-sidebar .prompt-item .prompt-name {
   flex: 1; /* flex-1 */
   width: 100%; /* w-full */
@@ -143,9 +134,21 @@
   border: 1px solid var(--border-color);
   border-radius: 0.375rem;
   flex: 1;
+  color: #4b5b70;
 }
 
-.prompt-main .save-prompt-button {
+.prompt-main .prompt-footer{
+  display: flex;
+  width: 100%;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  margin-top: .1rem;
+  gap : 3rem;
+}
+
+.prompt-main .save-prompt-button, 
+.prompt-main .edit-prompt-button{
   display: flex;
   align-items: center;
   gap: 0.75rem; /* gap-3 */
@@ -158,7 +161,9 @@
   cursor: pointer; /* cursor-pointer */
 }
 
-.prompt-main .save-prompt-button:hover {
+.prompt-main .save-prompt-button,
+.prompt-main .edit-prompt-button
+:hover {
   background-color: var(--button-hover-bg-color);
 }
 
