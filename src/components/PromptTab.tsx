@@ -43,11 +43,11 @@ const PromptTab: React.FC = () => {
     setIsEditing(false);
   };
 
-  const handleEditPrompt = () => {
+  const handleEditPromptText = () => {
     setIsEditing(true);
   };
 
-  const handleSavePrompt = async () => {
+  const handleUpdatePrompt = async () => {
     const currentUser = AuthService.getUsername();
     if (!currentUser) {
       NotificationService.handleError('No user is logged in.');
@@ -69,7 +69,7 @@ const PromptTab: React.FC = () => {
     }
   };
 
-  const handleNewPrompt = () => {
+  const handleCreateNewPrompt = () => {
     setIsAddingNewPrompt(true);
   };
 
@@ -90,7 +90,7 @@ const PromptTab: React.FC = () => {
       return;
     }
 
-    const newPrompt: Prompt = { id: Date.now(), name: newPromptName.trim(), text: '', is_active: true };
+    const newPrompt: Prompt = { id: Date.now(), name: newPromptName.trim(), text: 'New Prompt', is_active: true };
     setLoading(true);
     try {
       await PromptService.addPrompt({ prompt_name: newPrompt.name, prompt_text: newPrompt.text, created_by: currentUser });
@@ -140,7 +140,7 @@ const PromptTab: React.FC = () => {
       <div className="prompt-sidebar">
         <div className="scrollbar-trigger">
           <h2 className="sr-only">Prompt List</h2>
-          <button className="new-prompt-button" onClick={handleNewPrompt}>
+          <button className="new-prompt-button" onClick={handleCreateNewPrompt}>
             <PlusIcon className="h-4 w-4" />
             New Prompt
           </button>
@@ -194,7 +194,7 @@ const PromptTab: React.FC = () => {
           {isEditing ? (
             <button
               className="save-prompt-button"
-              onClick={handleSavePrompt}
+              onClick={handleUpdatePrompt}
             >
               <PlusIcon className="h-4 w-4" />
               Save
@@ -202,7 +202,7 @@ const PromptTab: React.FC = () => {
           ) : (
             <button
               className="edit-prompt-button"
-              onClick={handleEditPrompt}
+              onClick={handleEditPromptText}
             >
               <PencilSquareIcon className="h-4 w-4" />
               Edit
