@@ -83,7 +83,7 @@
 .prompt-sidebar .prompt-item .prompt-name {
   flex: 1; /* flex-1 */
   width: 100%; /* w-full */
-  text-align: left; /* text-left */
+  text-align: center; /* text-left */
   overflow: hidden; /* overflow-hidden */
   white-space: nowrap; /* whitespace-nowrap */
   text-overflow: ellipsis; /* overflow-ellipsis */

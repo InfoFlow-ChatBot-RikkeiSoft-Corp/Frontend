@@ -138,7 +138,7 @@ const SignUpPage: React.FC = () => {
           </button>
           <p>
             Already have an account?{' '}
-            <Link to="/login" className={styles.loginLink}>
+            <Link to="/login" className={styles.loginLink} style={{ color: '#046cf1' }}>
               Login
             </Link>
           </p>

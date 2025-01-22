@@ -169,8 +169,8 @@ const StorageTab: React.FC = () => {
               alt="Upload Icon"
               className="w-24 h-24 mb-2"
             />
-            <p className="text-lg font-semibold text-black">Drag and Drop</p>
-            <p className="or-text text-black">or</p>
+            <p className="text-lg font-semibold" style={{ color: '#333333' }}>Drag and Drop</p>
+            <p className="text-lg font-semibold" style={{ color: '#333333' }}>or</p>
           </>
         )}
         <button

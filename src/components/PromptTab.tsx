@@ -137,12 +137,6 @@ const PromptTab: React.FC = () => {
     }
   };
 
-  const editPromptName = (prompt: Prompt) => {
-    const newName = prompt.name + ' (edited)';
-    const updatedPrompt: Prompt = { ...prompt, name: newName };
-    setPrompts(prompts.map(p => p.id === prompt.id ? updatedPrompt : p));
-  };
-
   return (
     <div className="prompt-tab-container">
       <div className="prompt-sidebar">
@@ -162,9 +156,6 @@ const PromptTab: React.FC = () => {
                 <ChatBubbleLeftIcon className="h-4 w-4" />
                 <div className="prompt-name">{prompt.name}</div>
                 <div className="button-group">
-                  <button className="edit-button" onClick={() => editPromptName(prompt)}>
-                    <PencilSquareIcon className="h-4 w-4" />
-                  </button>
                   <button className="delete-button" onClick={() => handleDeletePrompt(prompt.id)}>
                     <TrashIcon className="h-4 w-4" />
                   </button>
