@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChatBubbleLeftIcon, PencilSquareIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
+import { ChatBubbleLeftIcon, PencilSquareIcon, TrashIcon, PlusIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import PromptService from '../service/PromptService';
 import { AuthService } from '../service/AuthService';
 import { NotificationService } from '../service/NotificationService';
@@ -18,6 +18,8 @@ const PromptTab: React.FC = () => {
   const [promptText, setPromptText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [newPromptName, setNewPromptName] = useState('');
+  const [isAddingNewPrompt, setIsAddingNewPrompt] = useState(false);
 
   useEffect(() => {
     fetchPrompts();
@@ -67,14 +69,28 @@ const PromptTab: React.FC = () => {
     }
   };
 
-  const handleNewPrompt = async () => {
+  const handleNewPrompt = () => {
+    setIsAddingNewPrompt(true);
+  };
+
+  const handleAddNewPrompt = async () => {
     const currentUser = AuthService.getUsername();
     if (!currentUser) {
       NotificationService.handleError('No user is logged in.');
       return;
     }
 
-    const newPrompt: Prompt = { id: Date.now(), name: 'New Prompt', text: '', is_active: true };
+    if (!newPromptName.trim()) {
+      NotificationService.handleError('Please enter a name.');
+      return;
+    }
+
+    if (prompts.some(prompt => prompt.name === newPromptName.trim())) {
+      NotificationService.handleError('Please enter a unique name.');
+      return;
+    }
+
+    const newPrompt: Prompt = { id: Date.now(), name: newPromptName.trim(), text: '', is_active: true };
     setLoading(true);
     try {
       await PromptService.addPrompt({ prompt_name: newPrompt.name, prompt_text: newPrompt.text, created_by: currentUser });
@@ -82,12 +98,19 @@ const PromptTab: React.FC = () => {
       setSelectedPrompt(newPrompt);
       setPromptText('');
       setIsEditing(true);
+      setIsAddingNewPrompt(false);
+      setNewPromptName('');
       NotificationService.handleSuccess('New prompt added successfully');
     } catch (error) {
       NotificationService.handleError('Error adding new prompt');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCancelNewPrompt = () => {
+    setIsAddingNewPrompt(false);
+    setNewPromptName('');
   };
 
   const handleDeletePrompt = async (id: number) => {
@@ -140,6 +163,23 @@ const PromptTab: React.FC = () => {
                 </div>
               </div>
             ))}
+            {isAddingNewPrompt && (
+              <div className="prompt-item new-prompt-input-container">
+                <input
+                  type="text"
+                  className="new-prompt-input"
+                  value={newPromptName}
+                  onChange={(e) => setNewPromptName(e.target.value)}
+                  placeholder="Enter prompt name"
+                />
+                <button className="add-prompt-button" onClick={handleAddNewPrompt}>
+                  <CheckIcon className="h-4 w-4" />
+                </button>
+                <button className="cancel-prompt-button" onClick={handleCancelNewPrompt}>
+                  <XMarkIcon className="h-4 w-4" />
+                </button>
+              </div>
+            )}
           </nav>
         </div>
       </div>
