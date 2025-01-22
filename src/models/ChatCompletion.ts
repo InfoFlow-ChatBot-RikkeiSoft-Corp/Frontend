@@ -74,7 +74,6 @@ export interface ChatMessage {
   fileDataRef?: FileDataRef[];
 }
 
-
 export interface ChatCompletionChoice {
   message: ChatMessage;
   finish_reason: string;

@@ -15,6 +15,7 @@ import StorageTab from './StorageTab';
 import WeblinkTab from './WeblinkTab';
 import PromptTab from './PromptTab';
 import GeneralTab from './GeneralTab';
+import { AuthService } from '../service/AuthService';
 
 interface UserSettingsModalProps {
   isVisible: boolean;
@@ -75,6 +76,9 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
         localStorage.removeItem('token');
         localStorage.removeItem('is_admin');
         localStorage.removeItem('myapp_user_id'); // if you have it
+        localStorage.removeItem('user_id');
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('username');
         navigate('/login');
       } else {
         const errorData = await response.json();

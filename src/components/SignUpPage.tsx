@@ -3,6 +3,9 @@ import { useNavigate, Link } from 'react-router-dom';
 import styles from '../styles/SignUp.module.css';
 import GoogleButton from 'react-google-button';
 import { NewConversationService } from '../service/NewConversationService';
+import { AuthService } from '../service/AuthService';
+import { NotificationService } from '../service/NotificationService';
+import { APP_CONSTANTS } from '../constants/appConstants';
 
 const SignUpPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -12,30 +15,38 @@ const SignUpPage: React.FC = () => {
   const [submitButtonDisabled, setSubmitButtonDisabled] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmission = async () => {
-    setErrorMsg(''); // Clear error message before processing
+  // Validate the form inputs
+  const validateInputs = (): boolean => {
     if (!email || !password || !confirmPassword) {
       setErrorMsg('Please fill all fields');
-      return;
+      return false;
     }
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       setErrorMsg('Enter a valid email');
-      return;
+      return false;
     }
 
-    if (password.length < 8) {
+    if (password.length < 8 || !/\d/.test(password) || !/[a-zA-Z]/.test(password)) {
       setErrorMsg(
         'Password must be at least 8 characters long and include numbers and letters'
       );
-      return;
+      return false;
     }
 
     if (password !== confirmPassword) {
       setErrorMsg('Passwords do not match');
-      return;
+      return false;
     }
+
+    return true;
+  };
+
+  // Handle the form submission
+  const handleSubmission = async () => {
+    setErrorMsg('');
+    if (!validateInputs()) return;
 
     setSubmitButtonDisabled(true);
 
@@ -48,7 +59,8 @@ const SignUpPage: React.FC = () => {
         body: JSON.stringify({ username: email, password }),
       });
 
-      if (response.status === 201) {
+      if (response.ok) {
+        NotificationService.handleSuccess('Signup successful! Redirecting to login...');
         navigate('/login'); // Redirect to login on successful signup
       } else {
         const data = await response.json();
@@ -62,25 +74,44 @@ const SignUpPage: React.FC = () => {
     }
   };
 
-  // Google OAuth via Popup
+  // Handle Google Signup via Popup
   const handleGoogleSignupClick = () => {
-    const width = 600,
-      height = 600;
+    const width = 600;
+    const height = 600;
     const left = window.screenX + (window.innerWidth - width) / 2;
     const top = window.screenY + (window.innerHeight - height) / 2;
 
     window.open(
       'http://127.0.0.1:5000/api/auth/google-redirect',
-      'GoogleSignupPopup',
+      'GoogleLoginPopup',
       `width=${width},height=${height},top=${top},left=${left}`
     );
   };
 
+  // Listen for the Google OAuth callback
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
+    const handleMessage = async (event: MessageEvent) => {
       if (event.data?.type === 'google-auth-success') {
-        localStorage.setItem('token', event.data.jwt);
-        navigate('/main'); // Redirect to home after Google signup
+        const tokenFromGoogle = event.data.jwt;
+        console.log('Received token from popup:', tokenFromGoogle);
+
+        try {
+          // Save the token in local storage
+          AuthService.saveToken(tokenFromGoogle);
+
+          // Fetch user details using the token
+          const { user_id, is_admin } = await AuthService.fetchUserDetails();
+
+          // Save user details
+          AuthService.saveId(user_id);
+          AuthService.saveIsAdmin(is_admin);
+
+          NotificationService.handleSuccess('Google signup successful!');
+          navigate('/main'); // Redirect to the main page
+        } catch (error) {
+          NotificationService.handleError('Failed to fetch user details after Google signup.');
+          console.error('Google OAuth Error:', error);
+        }
       }
     };
 
@@ -89,6 +120,7 @@ const SignUpPage: React.FC = () => {
       window.removeEventListener('message', handleMessage);
     };
   }, [navigate]);
+
 
   return (
     <div className={styles.container}>
@@ -160,5 +192,6 @@ const SignUpPage: React.FC = () => {
     </div>
   );
 };
+
 
 export default SignUpPage;

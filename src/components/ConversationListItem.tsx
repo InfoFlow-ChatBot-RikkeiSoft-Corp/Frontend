@@ -1,9 +1,9 @@
-import React, {useRef, useState} from 'react';
-import {useNavigate} from 'react-router-dom';
-import {ChatBubbleLeftIcon, CheckIcon, PencilSquareIcon, TrashIcon, XMarkIcon} from "@heroicons/react/24/outline";
-import ConversationService, {Conversation} from "../service/ConversationService";
-import {iconProps} from "../svg";
-import {MAX_TITLE_LENGTH} from "../constants/appConstants";
+import React, { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ChatBubbleLeftIcon, CheckIcon, PencilSquareIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import ConversationService, { Conversation } from "../service/ConversationService";
+import { iconProps } from "../svg";
+import { MAX_TITLE_LENGTH } from "../constants/appConstants";
 
 interface ConversationListItemProps {
   convo: Conversation;
@@ -24,7 +24,7 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
   const acceptButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const saveEditedTitle = () => {
-    ConversationService.updateConversationPartial(convo, {title: editedTitle})
+    ConversationService.updateConversationPartial(convo, { title: editedTitle })
       .then(() => {
         setIsEditingTitle(false);
         loadConversations();
@@ -48,6 +48,7 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
   const selectConversation = () => {
     setSelectedId(convo.id);
     if (!isEditingTitle) {
+      // Assuming gid is optional and may not be present
       const url = convo.gid ? `/g/${convo.gid}/c/${convo.id}` : `/c/${convo.id}`;
       navigate(url);
     }
@@ -55,10 +56,8 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
 
   const toggleEditMode = () => {
     if (!isEditingTitle) {
-      // Entering edit mode
       setEditedTitle(convo.title);
     } else {
-      // Exiting edit mode
       setEditedTitle('');
     }
     setIsEditingTitle(!isEditingTitle);
@@ -74,16 +73,14 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
   };
 
   const handleInputBlur = () => {
-    // Decide if you want to auto-save on blur or revert
-    // For now, let's revert the changes if user clicks away
+    // Exit edit mode without saving changes on blur
     setIsEditingTitle(false);
     setEditedTitle(convo.title);
   };
 
-  // Render: selected = different styling
   if (isSelected) {
     return (
-      <li key={convo.id} className="relative z-[15]" style={{opacity: 1, height: "auto"}}>
+      <li key={convo.id} className="relative z-[15]" style={{ opacity: 1, height: "auto" }}>
         <div
           role="button"
           className="relative flex py-3 px-3 items-center gap-3 rounded-md bg-gray-100 dark:bg-gray-800 cursor-pointer break-all pr-14 group"
@@ -99,7 +96,7 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
                 onKeyDown={handleTitleInputKeyPress}
                 autoFocus
                 maxLength={MAX_TITLE_LENGTH}
-                style={{width: "10em"}}
+                style={{ width: "10em" }}
                 onBlur={handleInputBlur}
               />
             </div>
@@ -150,7 +147,7 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
     );
   } else {
     return (
-      <li key={convo.id} className="relative z-[15]" style={{opacity: 1, height: "auto"}}>
+      <li key={convo.id} className="relative z-[15]" style={{ opacity: 1, height: "auto" }}>
         <button
           onClick={selectConversation}
           type="button"

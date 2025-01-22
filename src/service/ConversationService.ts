@@ -137,7 +137,7 @@ class ConversationService {
     let event: ConversationChangeEvent = {action: 'delete', id: 0};
     conversationsEmitter.emit('conversationChangeEvent', event);
   }
-
+  
 }
 
 export const conversationsEmitter = new EventEmitter<ConversationChangeEvent>();

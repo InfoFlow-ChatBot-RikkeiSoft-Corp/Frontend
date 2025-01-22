@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import Sidebar from './components/SideBar';
 import MainPage from './components/MainPage';
@@ -7,14 +7,39 @@ import SignUpPage from './components/SignUpPage';
 import Homepage from './components/homepage';
 import './App.css';
 import { ToastContainer } from 'react-toastify';
+import { AuthService } from './service/AuthService';
 
 const App: React.FC = () => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    // Check localStorage on initialization
+    return localStorage.getItem('isAuthenticated') === 'true';
+  });
 
   const toggleSidebarCollapse = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
+
+  // Update localStorage when isAuthenticated changes
+  useEffect(() => {
+    localStorage.setItem('isAuthenticated', String(isAuthenticated));
+  }, [isAuthenticated]);
+
+  useEffect(() => {
+    async function initializeUser() {
+      if (AuthService.getToken() && !AuthService.getUsername()) {
+        try {
+          const { username } = await AuthService.fetchUserDetails();
+          AuthService.username = username;
+        } catch (error) {
+          // Handle error, maybe logout user or show a message
+          console.error("Failed to initialize user:", error);
+          // Optionally, handle logout or error messaging here.
+        }
+      }
+    }
+    initializeUser();
+  }, []);
 
   return (
     <BrowserRouter>
@@ -31,10 +56,7 @@ const App: React.FC = () => {
           />
 
           {/* Sign Up Page */}
-          <Route
-            path="/signup"
-            element={<SignUpPage />}
-          />
+          <Route path="/signup" element={<SignUpPage />} />
 
           {/* Protected Routes */}
           <Route
@@ -81,10 +103,8 @@ const App: React.FC = () => {
             }
           />
 
-          <Route
-            path="*"
-            element={<Navigate to="/" replace />}
-          />
+          {/* Default Route */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </BrowserRouter>
