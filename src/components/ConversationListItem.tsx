@@ -76,7 +76,7 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
   const handleInputBlur = () => {
     // Decide if you want to auto-save on blur or revert
     // For now, let's revert the changes if user clicks away
-    setIsEditingTitle(false);
+    setIsEditingTitle(true);
     setEditedTitle(convo.title);
   };
 
@@ -88,18 +88,18 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
           role="button"
           className="relative flex py-3 px-3 items-center gap-3 rounded-md bg-gray-100 dark:bg-gray-800 cursor-pointer break-all pr-14 group"
         >
-          <ChatBubbleLeftIcon {...iconProps} />
+          {!isEditingTitle && <ChatBubbleLeftIcon {...iconProps} />}
           {isEditingTitle ? (
             <div className="flex items-center gap-3">
               <input
                 type="text"
-                className="dark:bg-gray-800 dark:text-gray-100"
+                className="dark:bg-gray-800 dark:text-gray-100 text-center"
                 value={editedTitle}
                 onChange={(e) => setEditedTitle(e.target.value)}
                 onKeyDown={handleTitleInputKeyPress}
                 autoFocus
                 maxLength={MAX_TITLE_LENGTH}
-                style={{width: "10em"}}
+                style={{width: "12.4em"}}
                 onBlur={handleInputBlur}
               />
             </div>
@@ -108,16 +108,9 @@ const ConversationListItem: React.FC<ConversationListItemProps> = ({
               {convo.title}
             </div>
           )}
-          <div className="absolute flex right-1 z-10 dark:text-gray-300 text-gray-800">
+          <div className="absolute flex right-1 z-10 dark:text-gray-300 text-gray-800 text-center">
             {isEditingTitle ? (
               <>
-                <button
-                  ref={acceptButtonRef}
-                  onClick={saveEditedTitle}
-                  className="p-1 hover:text-gray-400 dark:hover:text-white"
-                >
-                  <CheckIcon {...iconProps} />
-                </button>
                 <button
                   onClick={() => {
                     setIsEditingTitle(false);
