@@ -22,7 +22,7 @@ export class AuthService {
 
       // Save the username in-memory
       AuthService.username = username;
-
+      localStorage.setItem('username',username);
       // Extract token & user_id from the response
       const { token, user_id, is_admin } = response.data;
 
@@ -77,7 +77,9 @@ export class AuthService {
    * Get the cached username (only stored statically, not in localStorage)
    */
   static getUsername(): string | null {
-    return AuthService.username;
+    if (AuthService.username) return AuthService.username;
+
+    return localStorage.getItem('username');
   }
 
   /**
@@ -88,6 +90,7 @@ export class AuthService {
     localStorage.removeItem(APP_CONSTANTS.TOKEN_KEY); 
     localStorage.removeItem(APP_CONSTANTS.USER_ID);
     localStorage.removeItem('is_admin');
+    localStorage.removeItem('isAuthenticated');
   }
 
   // ===============================
@@ -111,6 +114,26 @@ export class AuthService {
       throw new Error(error.response?.data?.error || "Failed to fetch prompt");
     }
   }
+
+  /**
+ * Fetches user details using the token (for Google SSO or any token-based flow)
+ */
+static async fetchUserDetails(): Promise<{ user_id: string; is_admin: boolean; username: string }> {
+  try {
+    const response = await axios.get(`${APP_CONSTANTS.BASE_URL}${API_ENDPOINTS.GET_USER_DETAILS}`, {
+      headers: {
+        Authorization: `Bearer ${AuthService.getToken()}`,
+      },
+    });
+
+    // Extract and return user details
+    const { user_id, is_admin, username } = response.data;
+    return { user_id, is_admin, username };
+  } catch (error: any) {
+    throw new Error(error.response?.data?.error || "Failed to fetch user details");
+  }
+}
+
 
   static async addPrompt(prompt: {
     prompt_name: string;
