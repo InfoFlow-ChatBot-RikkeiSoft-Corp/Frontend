@@ -9,7 +9,7 @@ import {
 import { Transition } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-
+import { NotificationService } from '../service/NotificationService';
 import '../styles/UserSettingsModal.css';
 import StorageTab from './StorageTab';
 import WeblinkTab from './WeblinkTab';
@@ -54,36 +54,37 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
     onClose();
   };
 
-  const handleLogout = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      alert('You are not logged in.');
-      navigate('/login');
-      return;
-    }
+const handleLogout = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    NotificationService.handleError('You are not logged in.');
+    navigate('/login');
+    return;
+  }
 
-    try {
-      const response = await fetch(`http://127.0.0.1:5000/api/auth/logout`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (response.ok) {
-        // Clear localStorage
-        localStorage.removeItem('token');
-        localStorage.removeItem('is_admin');
-        localStorage.removeItem('myapp_user_id'); // if you have it
-        navigate('/login');
-      } else {
-        const errorData = await response.json();
-        alert(`Logout failed: ${errorData.error}`);
-      }
-    } catch (error) {
-      alert('An error occurred during logout. Please try again.');
+  try {
+    const response = await fetch(`http://127.0.0.1:5000/api/auth/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response.ok) {
+      // Clear localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('is_admin');
+      localStorage.removeItem('myapp_user_id'); // if you have it
+      NotificationService.handleSuccess('Logout successful.');
+      navigate('/login');
+    } else {
+      const errorData = await response.json();
+      NotificationService.handleError(`Logout failed: ${errorData.error}`);
     }
-  };
+  } catch (error) {
+    NotificationService.handleUnexpectedError(new Error('Failed to logout'));
+  }
+};
 
   return (
     <Transition show={isVisible} as={React.Fragment}>

@@ -36,48 +36,41 @@ const App: React.FC = () => {
             element={<SignUpPage />}
           />
 
-          {/* Protected Routes */}
-          <Route
+           {/* Main Page */}
+           <Route
             path="/main"
             element={
-              isAuthenticated ? (
-                <div className="flex">
-                  <Sidebar
-                    className="sidebar-container flex-shrink-0"
-                    isSidebarCollapsed={isSidebarCollapsed}
-                    toggleSidebarCollapse={toggleSidebarCollapse}
-                  />
-                  <MainPage
-                    className="main-content"
-                    isSidebarCollapsed={isSidebarCollapsed}
-                    toggleSidebarCollapse={toggleSidebarCollapse}
-                  />
-                </div>
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              <div className="flex">
+                <Sidebar
+                  className="sidebar-container flex-shrink-0"
+                  isSidebarCollapsed={isSidebarCollapsed}
+                  toggleSidebarCollapse={toggleSidebarCollapse}
+                />
+                <MainPage
+                  className="main-content"
+                  isSidebarCollapsed={isSidebarCollapsed}
+                  toggleSidebarCollapse={toggleSidebarCollapse}
+                />
+              </div>
             }
           />
 
+          {/* Main Page with ID */}
           <Route
             path="/c/:id"
             element={
-              isAuthenticated ? (
-                <div className="flex">
-                  <Sidebar
-                    className="sidebar-container flex-shrink-0"
-                    isSidebarCollapsed={isSidebarCollapsed}
-                    toggleSidebarCollapse={toggleSidebarCollapse}
-                  />
-                  <MainPage
-                    className="main-content"
-                    isSidebarCollapsed={isSidebarCollapsed}
-                    toggleSidebarCollapse={toggleSidebarCollapse}
-                  />
-                </div>
-              ) : (
-                <Navigate to="/login" replace />
-              )
+              <div className="flex">
+                <Sidebar
+                  className="sidebar-container flex-shrink-0"
+                  isSidebarCollapsed={isSidebarCollapsed}
+                  toggleSidebarCollapse={toggleSidebarCollapse}
+                />
+                <MainPage
+                  className="main-content"
+                  isSidebarCollapsed={isSidebarCollapsed}
+                  toggleSidebarCollapse={toggleSidebarCollapse}
+                />
+              </div>
             }
           />
 
