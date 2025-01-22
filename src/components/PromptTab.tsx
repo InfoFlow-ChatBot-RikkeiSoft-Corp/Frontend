@@ -79,27 +79,35 @@ const PromptTab: React.FC = () => {
       NotificationService.handleError('No user is logged in.');
       return;
     }
-
+  
     if (!newPromptName.trim()) {
       NotificationService.handleError('Please enter a name.');
       return;
     }
-
+  
     if (prompts.some(prompt => prompt.name === newPromptName.trim())) {
       NotificationService.handleError('Please enter a unique name.');
       return;
     }
-
-    const newPrompt: Prompt = { id: Date.now(), name: newPromptName.trim(), text: 'New Prompt', is_active: true };
+  
     setLoading(true);
+  
     try {
-      await PromptService.addPrompt({ prompt_name: newPrompt.name, prompt_text: newPrompt.text, created_by: currentUser });
-      setPrompts([...prompts, newPrompt]);
-      setSelectedPrompt(newPrompt);
+      // 백엔드에 새로운 Prompt 추가 요청
+      const addedPrompt = await PromptService.addPrompt({
+        prompt_name: newPromptName.trim(),
+        prompt_text: 'New Prompt',
+        created_by: currentUser,
+      });
+  
+      // 상태 업데이트: 백엔드에서 반환된 데이터를 사용
+      setPrompts([...prompts, addedPrompt]);
+      setSelectedPrompt(addedPrompt); // 새로 추가된 Prompt를 선택 상태로 설정
       setPromptText('');
       setIsEditing(true);
       setIsAddingNewPrompt(false);
       setNewPromptName('');
+  
       NotificationService.handleSuccess('New prompt added successfully');
     } catch (error) {
       NotificationService.handleError('Error adding new prompt');
@@ -107,7 +115,7 @@ const PromptTab: React.FC = () => {
       setLoading(false);
     }
   };
-
+  
   const handleCancelNewPrompt = () => {
     setIsAddingNewPrompt(false);
     setNewPromptName('');
