@@ -58,24 +58,37 @@ const LoginPage: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
 
   // Listen for the postMessage from google callback
   useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
+    const handleMessage = async (event: MessageEvent) => {
       if (event.data?.type === 'google-auth-success') {
         const tokenFromGoogle = event.data.jwt;
         console.log('Received token from popup:', tokenFromGoogle);
+  
+        try {
+          // Save the token in local storage
+          AuthService.saveToken(tokenFromGoogle);
+  
+          // Fetch user details using the token
+          const { user_id, is_admin } = await AuthService.fetchUserDetails();
+  
+          // Save user details
+          AuthService.saveId(user_id);
+          AuthService.saveIsAdmin(is_admin);
+          setIsAuthenticated(true);
 
-        // Save under the same 'token' key via AuthService
-        AuthService.saveToken(tokenFromGoogle);
-
-        setIsAuthenticated(true);
-        navigate('/main');
+          NotificationService.handleSuccess('Google login successful!');
+          navigate('/main');
+        } catch (error) {
+          NotificationService.handleError('Failed to fetch user details after Google login.');
+        }
       }
     };
-
+  
     window.addEventListener('message', handleMessage);
     return () => {
       window.removeEventListener('message', handleMessage);
     };
   }, [navigate, setIsAuthenticated]);
+  
 
   return (
     <div className={styles.container}>
