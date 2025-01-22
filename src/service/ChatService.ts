@@ -15,10 +15,25 @@ export class ChatService {
     messages: ChatMessage[],
     onStreamedResponse: (response: string) => void
   ): Promise<void> {
+    // Add debug logging
+    console.log("sendMessageStreamed called with:", {
+      userId,
+      conversationId,
+      lastMessage: messages[messages.length - 1]?.content
+    });
+
     const url = `http://127.0.0.1:5000/api/chat/ask`;
     const payload = {
-      question: messages[messages.length - 1]?.content || "", // 마지막 메시지의 내용을 요청에 추가
+      question: messages[messages.length - 1]?.content || "",
     };
+
+    // Add request tracking to prevent duplicates
+    const requestKey = `${conversationId}-${messages.length}`;
+    if (ChatService.pendingRequests.has(requestKey)) {
+      console.log("Duplicate request detected, skipping:", requestKey);
+      return;
+    }
+    ChatService.pendingRequests.add(requestKey);
 
     try {
       const response = await fetch(url, {
@@ -30,6 +45,7 @@ export class ChatService {
         },
         body: JSON.stringify(payload),
       });
+
       if (!response.ok) {
         throw new Error(`API error: ${response.status}`);
       }
@@ -56,6 +72,12 @@ export class ChatService {
     } catch (error) {
       console.error("Error during message streaming:", error);
       throw error;
+    } finally {
+      // Clean up request tracking
+      ChatService.pendingRequests.delete(requestKey);
     }
   }
+
+  // Add static Set to track pending requests
+  private static pendingRequests = new Set<string>();
 }
