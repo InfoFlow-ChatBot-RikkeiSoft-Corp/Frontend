@@ -211,6 +211,7 @@ const MessageBox =
       const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         e.stopPropagation();
+        console.log("check ....");
         if (textAreaRef.current) {
           setTextValue(textAreaRef.current.value);
         }
@@ -223,7 +224,7 @@ const MessageBox =
         event.preventDefault();
         event.stopPropagation();
 
-        ChatService.cancelStream();
+        // ChatService.cancelStream();
         setLoading(false);
       };
 

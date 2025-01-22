@@ -1,0 +1,339 @@
+/* General Styles */
+.homepage {
+  font-family: Arial, sans-serif;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Header Section */
+.navbar {
+  background-color: #0c1c3e;
+  height: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom: #fff .6px solid;
+}
+
+.navContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  height: 80px;
+  max-width: 1500px;
+}
+
+.navLogo {
+  color: #ffffff;
+  margin-left: 20px;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 2rem;
+  font-weight: bold;
+  font-family: Georgia, serif;
+}
+
+.navMenu {
+  display: flex;
+  list-style: none;
+  text-align: center;
+  margin-right: 2rem;
+}
+
+.navLinks {
+  color: #ffffff;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  height: 100%;
+  border-bottom: 3px solid transparent;
+  font-family: Georgia, serif;
+}
+
+.navItem {
+  line-height: 40px;
+  margin-right: 2rem;
+}
+
+.navItem:hover .navLinks {
+  border-bottom: 3px solid #046cf1;
+}
+
+.navIcon {
+  display: none;
+}
+
+@media screen and (max-width: 960px) {
+  .navMenu {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    border-top: 1px solid #fff;
+    position: absolute;
+    top: 80px;
+    left: -110%;
+    opacity: 1;
+    transition: all 0.5s ease;
+  }
+
+  .navMenu.active {
+    background: #fff;
+    left: 0px;
+    opacity: 1;
+    transition: all 0.5s ease;
+    z-index: 1;
+  }
+
+  .navLinks {
+    padding: 1.5rem;
+    width: 100%;
+    display: table;
+  }
+
+  .navIcon {
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(-100%, 60%);
+    font-size: 1.8rem;
+    cursor: pointer;
+    color: #046cf1;
+  }
+}
+
+/* Hero Section */
+.hero {
+  background: url('/path/to/your/background-image.jpg') no-repeat center center/cover;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.heroContent {
+  max-width: 800px;
+}
+
+.heroContent h1 {
+  font-family: Georgia, serif;
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.heroContent p {
+  font-size: 1.2rem;
+  font-family: "Times New Roman", serif;
+  margin-bottom: 20px;
+}
+
+.getStarted {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.getStarted:hover {
+  background-color: #0056b3;
+}
+
+/* Info Section */
+.Infocontainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  background-color: #111827;
+  padding: 4rem 6rem;
+}
+
+.heading {
+  font-weight: 500;
+  font-size: 4rem;
+  font-family: "Times New Roman", serif;
+  color: #046cf1;
+}
+
+.cards {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  justify-content: center;
+  align-items: center;
+}
+
+.card {
+  display: flex;
+  gap: 20px;
+  flex-wrap: nowrap;
+  width: 60vw;
+  padding: 20px;
+  align-items: center;
+  min-height: auto;
+  box-shadow: rgba(94, 157, 184, 0.12) 0px 2px 4px 0px, rgba(61, 145, 181, 0.32) 0px 2px 16px 0px;
+  border-radius: 20px;
+  background-color: #fff;
+}
+
+.cardTitle {
+  color: #046cf1;
+  font-family: serif;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.card:nth-child(2) {
+  display: flex;
+  padding: 20px;
+  flex-direction: row-reverse;
+}
+
+.image img {
+  width: 100%;
+  height: 100%;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: 'Georgia', sans-serif;
+  letter-spacing: 1px;
+  font-weight: lighter;
+}
+
+/* Footer Section */
+.footer {
+  background-color: #0c1c3e;
+  display: flex;
+  width: 100%;
+}
+
+.footer .container {
+  background-color: #0c1c3e;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  width: 100%;
+  padding: 20px 2.5rem;
+}
+
+.footer .header {
+  font-size: 20px;
+  font-family: 'Chakra Petch', sans-serif;
+  color: #fff;
+  display: flex;
+  flex-direction: row;
+  align-items: left;
+  margin-top: 1rem;
+  margin-left: 0%;
+}
+
+.footer .handles {
+  display: flex;
+  gap: 15px;
+}
+
+.footer .handles .logo {
+  max-width: 100px; /* Set a maximum width */
+  max-height: 100px; /* Set a maximum height */
+  width: auto; /* Maintain aspect ratio */
+  height: auto; /* Maintain aspect ratio */
+  background-color: #fff;
+  border-radius: 5%;
+}
+
+@media only screen and (min-width: 700px) and (max-width: 750px) {
+  .footer {
+    padding: 20px 2rem;
+  }
+}
+
+@media only screen and (min-width: 600px) and (max-width: 699px) {
+  .footer {
+    flex-direction: column;
+    gap: 4px;
+  }
+}
+
+@media only screen and (min-width: 550px) and (max-width: 599px) {
+  .footer {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .footer .header {
+    font-size: 13px;
+    gap: 2px;
+  }
+
+  .footer .handles svg {
+    height: 25px;
+  }
+}
+
+@media only screen and (min-width: 500px) and (max-width: 549px) {
+  .footer {
+    padding: 20px 2rem;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .footer .header {
+    font-size: 13px;
+    gap: 2px;
+  }
+
+  .footer .handles svg {
+    height: 20px;
+  }
+}
+
+@media only screen and (min-width: 400px) and (max-width: 499px) {
+  .footer {
+    padding: 10px 2rem;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .footer .header {
+    font-size: 12px;
+    gap: 2px;
+  }
+
+  .footer .handles svg {
+    height: 16px;
+  }
+}
+
+@media only screen and (min-width: 300px) and (max-width: 399px) {
+  .footer {
+    padding: 10px 1rem;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .footer .header {
+    font-size: 10px;
+    gap: 2px;
+  }
+
+  .footer .handles svg {
+    height: 16px;
+  }
+}

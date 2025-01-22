@@ -18,6 +18,14 @@
   max-width: 100%; /* Ensure it does not exceed the container */
 }
 
+/* Theme-text*/
+.theme-text {
+  font-size: 1.125rem; /* Equivalent to `text-lg` */
+  font-weight: 100;
+  margin: 0;
+  color: #ffffff;
+}
+
 /* Custom scrollbar styles */
 #user-settings-content::-webkit-scrollbar {
   width: 12px;
@@ -159,6 +167,28 @@
   cursor: not-allowed;
 }
 
+/* Upload button */
+.upload-button {
+  padding: 10px 24px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.upload-button:hover {
+  background-color: #2563eb;
+}
+
+.upload-button:disabled {
+  background-color: #3b82f6; /* Disabled state */
+  cursor: not-allowed;
+}
+
 /* Table Container */
 .table-container {
   margin-top: 10px;
@@ -243,4 +273,36 @@
 
 .logout-button:hover {
   background-color: #ff4d4d;
+}
+
+/* Weblink input */
+.weblink-input {
+  color: black;
+}
+
+/* Upload button */
+.upload-button {
+  padding: 10px 24px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.upload-button:hover {
+  background-color: #2563eb;
+}
+
+.upload-button:disabled {
+  background-color: #3b82f6; /* Disabled state */
+  cursor: not-allowed;
+}
+
+/* Table container */
+.table-container {
+  overflow-x: auto;
 }

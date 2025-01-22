@@ -1,16 +1,21 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   CircleStackIcon,
   Cog6ToothIcon,
   XMarkIcon,
-  TrashIcon,
+  LinkIcon,
+  PencilIcon,
 } from '@heroicons/react/24/outline';
-import { Theme, UserContext } from '../UserContext';
-import '../styles/UserSettingsModal.css';
-import { NotificationService } from '../service/NotificationService';
-import { useTranslation } from 'react-i18next';
 import { Transition } from '@headlessui/react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { NotificationService } from '../service/NotificationService';
+import '../styles/UserSettingsModal.css';
+import StorageTab from './StorageTab';
+import WeblinkTab from './WeblinkTab';
+import PromptTab from './PromptTab';
+import GeneralTab from './GeneralTab';
+import { AuthService } from '../service/AuthService';
 
 interface UserSettingsModalProps {
   isVisible: boolean;
@@ -20,116 +25,69 @@ interface UserSettingsModalProps {
 enum Tab {
   GENERAL_TAB = 'General',
   STORAGE_TAB = 'Storage',
+  WEBLINK_TAB = 'Weblink',
+  PROMPT_TAB = 'Prompt',
 }
-
 const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClose }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
-  const { userSettings, setUserSettings } = useContext(UserContext);
-  const [activeTab, setActiveTab] = useState<Tab>(Tab.GENERAL_TAB);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [fileList, setFileList] = useState<Array<{ name: string; type: string; size: number; date: string }>>([]);
-  const [isDragging, setIsDragging] = useState(false);
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [preview, setPreview] = useState<string | null>(null);
-  const acceptedFileExtensions = ["txt", "pdf", "doc", "docx"].map(ext => `.${ext}`).join(',');
+
+  // Track the active tab
+  const [activeTab, setActiveTab] = useState<Tab>(Tab.GENERAL_TAB);
+
+  // We'll track isAdmin from localStorage
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
+    // On mount or when modal becomes visible:
     if (isVisible) {
       setActiveTab(Tab.GENERAL_TAB);
-      loadFileList();
     }
+
+    // Check localStorage
+    const adminFlag = localStorage.getItem('is_admin') === 'true';
+    setIsAdmin(adminFlag);
   }, [isVisible]);
 
   const handleClose = () => {
     onClose();
   };
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] || null;
-    setSelectedFile(file);
-    if (file) {
-      setPreview(URL.createObjectURL(file));
+const handleLogout = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    NotificationService.handleError('You are not logged in.');
+    navigate('/login');
+    return;
+  }
+
+  try {
+    const response = await fetch(`http://127.0.0.1:5000/api/auth/logout`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response.ok) {
+      // Clear localStorage
+      localStorage.removeItem('token');
+      localStorage.removeItem('is_admin');
+      localStorage.removeItem('myapp_user_id');
+      localStorage.removeItem('user_id');
+      localStorage.removeItem('isAuthenticated');
+      localStorage.removeItem('username');
+      NotificationService.handleSuccess('Logout successful.');
+      navigate('/login');
+    } else {
+      const errorData = await response.json();
+      NotificationService.handleError(`Logout failed: ${errorData.error}`);
     }
-  };
-
-  const handleFileUpload = async () => {
-    if (selectedFile) {
-      try {
-        const fileData = await selectedFile.arrayBuffer();
-        const fileInfo = {
-          name: selectedFile.name,
-          type: selectedFile.type,
-          size: selectedFile.size,
-          data: Array.from(new Uint8Array(fileData)),
-        };
-        localStorage.setItem(`uploadedFile_${selectedFile.name}`, JSON.stringify(fileInfo));
-        NotificationService.handleSuccess('File uploaded successfully.');
-        setSelectedFile(null);
-        setPreview(null);
-        loadFileList();
-      } catch (error) {
-        console.error('Failed to upload file:', error);
-        NotificationService.handleUnexpectedError(new Error('Failed to upload file'));
-      }
-    }
-  };
-
-  const loadFileList = () => {
-    const files: Array<{ name: string; type: string; size: number, date: string}> = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('uploadedFile_')) {
-        try {
-          const fileInfo = JSON.parse(localStorage.getItem(key) || '{}');
-          if (fileInfo.name && fileInfo.type && fileInfo.size) {
-            files.push({
-              name: fileInfo.name,
-              type: getFileExtension(fileInfo.name),
-              size: fileInfo.size,
-              date: new Date().toISOString(),
-            });
-          } else {
-            console.warn(`Invalid file info for key: ${key}`);
-          }
-        } catch (error) {
-          console.error(`Failed to parse file info for key: ${key}`, error);
-        }
-      }
-    }
-    setFileList(files);
-  };
-
-  const handleFileDelete = (fileName: string) => {
-    localStorage.removeItem(`uploadedFile_${fileName}`);
-    NotificationService.handleSuccess('File deleted successfully.');
-    loadFileList();
-  };
-
-  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setIsDragging(true);
-  };
-
-  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-    event.preventDefault();
-    setIsDragging(false);
-    const file = event.dataTransfer.files[0];
-    setSelectedFile(file);
-    if (file) {
-      setPreview(URL.createObjectURL(file));
-    }
-  };
-
-  const handleLogout = () => {
-    // Implement your logout logic here
-    console.log('User logged out');
-    navigate('/login'); // Redirect to the login page
-  };
-
-  const getFileExtension = (fileName: string) => {
-    return fileName.slice(((fileName.lastIndexOf(".") - 1) >>> 0) + 2);
-  };
+  } catch (error) {
+    NotificationService.handleUnexpectedError(new Error('Failed to logout'));
+  }
+};
 
   return (
     <Transition show={isVisible} as={React.Fragment}>
@@ -145,9 +103,10 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
         >
           <div
             ref={dialogRef}
-            className="flex flex-col bg-white dark:bg-gray-850 rounded-lg w-full max-w-2xl mx-auto overflow-hidden"
+            className="flex flex-col bg-white dark:bg-gray-850 rounded-lg w-full mx-auto overflow-hidden"
             style={{ height: '90vh', width: '170vh' }}
           >
+            {/* Header */}
             <div
               id="user-settings-header"
               className="flex justify-between items-center border-b border-gray-200 p-4"
@@ -162,8 +121,11 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                 <XMarkIcon className="h-8 w-8" aria-hidden="true" />
               </button>
             </div>
+            {/* Content */}
             <div id="user-settings-content" className="flex flex-1 overflow-auto relative">
+              {/* Sidebar */}
               <div className="border-r border-gray-200 flex flex-col">
+                {/* Always show GENERAL tab */}
                 <div
                   className={`cursor-pointer p-4 flex items-center ${
                     activeTab === Tab.GENERAL_TAB ? 'bg-gray-200 dark:bg-gray-700' : ''
@@ -173,149 +135,56 @@ const UserSettingsModal: React.FC<UserSettingsModalProps> = ({ isVisible, onClos
                   <Cog6ToothIcon className="w-4 h-4 mr-3" aria-hidden="true" />
                   {t('general-tab')}
                 </div>
-                <div
-                  className={`cursor-pointer p-4 flex items-center ${
-                    activeTab === Tab.STORAGE_TAB ? 'bg-gray-200 dark:bg-gray-700' : ''
-                  }`}
-                  onClick={() => setActiveTab(Tab.STORAGE_TAB)}
-                >
-                  <CircleStackIcon className="w-4 h-4 mr-3" aria-hidden="true" />
-                  {t('storage-tab')}
-                </div>
-                <div className="logout-button-container">
-                  <button
-                    onClick={handleLogout}
-                    className="logout-button"
+
+                {/* Only show if isAdmin */}
+                {isAdmin && (
+                  <div
+                    className={`cursor-pointer p-4 flex items-center ${
+                      activeTab === Tab.STORAGE_TAB ? 'bg-gray-200 dark:bg-gray-700' : ''
+                    }`}
+                    onClick={() => setActiveTab(Tab.STORAGE_TAB)}
                   >
+                    <CircleStackIcon className="w-4 h-4 mr-3" aria-hidden="true" />
+                    {t('storage-tab')}
+                  </div>
+                )}
+                {isAdmin && (
+                  <div
+                    className={`cursor-pointer p-4 flex items-center ${
+                      activeTab === Tab.WEBLINK_TAB ? 'bg-gray-200 dark:bg-gray-700' : ''
+                    }`}
+                    onClick={() => setActiveTab(Tab.WEBLINK_TAB)}
+                  >
+                    <LinkIcon className="w-4 h-4 mr-3" aria-hidden="true" />
+                    Weblink
+                  </div>
+                )}
+                {isAdmin && (
+                  <div
+                    className={`cursor-pointer p-4 flex items-center ${
+                      activeTab === Tab.PROMPT_TAB ? 'bg-gray-200 dark:bg-gray-700' : ''
+                    }`}
+                    onClick={() => setActiveTab(Tab.PROMPT_TAB)}
+                  >
+                    <PencilIcon className="w-4 h-4 mr-3" aria-hidden="true" />
+                    Prompt
+                  </div>
+                )}
+
+                {/* Logout Button */}
+                <div className="logout-button-container">
+                  <button onClick={handleLogout} className="logout-button">
                     Logout
                   </button>
                 </div>
               </div>
+
+              {/* Main content area */}
               <div className="flex-1 p-4">
-                {activeTab === Tab.GENERAL_TAB && (
-                  <div className="flex flex-col space-y-4">
-                    <div className="flex items-center justify-between">
-                      <label htmlFor="theme">{t('theme-label')}</label>
-                      <select
-                        id="theme"
-                        name="theme"
-                        className="custom-select dark:custom-select border-gray-300 border rounded p-2 dark:bg-gray-800 dark:text-white dark:border-gray-600"
-                        value={userSettings.userTheme}
-                        onChange={(e) => {
-                          setUserSettings({
-                            ...userSettings,
-                            userTheme: e.target.value as Theme,
-                          });
-                        }}
-                      >
-                        <option value="dark">{t('dark-option')}</option>
-                        <option value="light">{t('light-option')}</option>
-                        <option value="system">{t('system-option')}</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-                {activeTab === Tab.STORAGE_TAB && (
-                <>
-                  <div className="container bg-white p-4 rounded-lg shadow-md">
-                    <div className="file-upload-box"
-                      onDragOver={handleDragOver}
-                      onDrop={handleDrop}
-                    >
-                      {selectedFile && (
-                        <div className="file-preview">
-                          <div className="file-icon">
-                            <div className="circle">
-                              <span className="icon-text">{getFileExtension(selectedFile.name)}</span>
-                            </div>
-                          </div>
-                          <div className="file-info">
-                            <p className="file-name">{selectedFile.name}</p>
-                            <p className="file-size">{(selectedFile.size / (1024 * 1024)).toFixed(2)} MB</p>
-                          </div>
-                        </div>
-                      )}
-                      {!selectedFile && (
-                        <>
-                          <img
-                            src="/files-icon.png"
-                            alt="Upload Icon"
-                            className="w-24 h-24 mb-2"
-                          />
-                          <p className="text-lg font-semibold">Drag and Drop</p>
-                          <p className="or-text">or</p>
-                        </>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => (document.querySelector('input[type="file"]') as HTMLInputElement)?.click()}
-                        className="file-upload-box button"
-                      >
-                        Select File
-                      </button>
-                      <input
-                        type="file"
-                        id="file-upload"
-                        name="file-upload"
-                        className="hidden"
-                        onChange={handleFileSelect}
-                        accept={acceptedFileExtensions}
-                      />
-                    </div>
-                    <div className="save-button-box mt-4 text-center">
-                      <button
-                        onClick={handleFileUpload}
-                        disabled={!selectedFile}
-                        className="save-button-box button"
-                      >
-                        Upload
-                      </button>
-                    </div>
-                  </div>
-                  <div className="table-container">
-                    <table className="table-auto">
-                      <thead>
-                        <tr>
-                          <th>Name</th>
-                          <th>Type</th>
-                          <th>Size</th>
-                          <th>Upload date</th>
-                          <th></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {fileList.length > 0 ? (
-                          fileList.map((file, index) => (
-                            <tr key={index}>
-                              <td title={file.name}>{file.name}</td>
-                              <td>.{getFileExtension(file.name)}</td>
-                              <td>{(file.size / 1024).toFixed(2)} KB</td>
-                              <td>{new Date(file.date).toLocaleString()}</td> {/* Display the upload date */}
-                              <td className="py-2 px-4 text-sm text-gray-900 dark:text-white w-1/4 truncate">
-                                <button
-                                  onClick={() => handleFileDelete(file.name)}
-                                  className="py-1 px-2 bg-red-500 text-white rounded hover:bg-red-700"
-                                >
-                                  <TrashIcon className="h-4 w-4" aria-hidden="true" />
-                                </button>
-                              </td>
-                            </tr>
-                          ))
-                        ) : (
-                          <tr>
-                            <td
-                              colSpan={5}
-                              className="py-2 px-4 text-sm text-gray-900 dark:text-white text-center"
-                            >
-                              No files found
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
-              )}
+                {activeTab === Tab.GENERAL_TAB && <GeneralTab />}
+                {isAdmin && activeTab === Tab.STORAGE_TAB && <StorageTab />}
+                {isAdmin && activeTab === Tab.WEBLINK_TAB && <WeblinkTab />}
+                {isAdmin && activeTab === Tab.PROMPT_TAB && <PromptTab />}
               </div>
             </div>
           </div>

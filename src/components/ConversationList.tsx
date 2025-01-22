@@ -16,7 +16,7 @@ function useCurrentPath() {
 }
 
 const ConversationList: React.FC = () => {
-  const {t} = useTranslation();
+  const { t } = useTranslation();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [searchInputValue, setSearchInputValue] = useState("");
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -26,83 +26,50 @@ const ConversationList: React.FC = () => {
   const [conversationsWithMarkers, setConversationsWithMarkers] = useState<Conversation[]>([]);
   const { userSettings } = useContext(UserContext);
 
-
   useEffect(() => {
     loadConversations();
+    // If you want to handle real-time changes:
     conversationsEmitter.on('conversationChangeEvent', handleConversationChange);
-
     return () => {
       conversationsEmitter.off('conversationChangeEvent', handleConversationChange);
     };
-
   }, []);
 
-
   useEffect(() => {
-    const handleSelectedConversation = (id: string | null) => {
-      if (id && id.length > 0) {
-        let n = Number(id);
-        ConversationService.getConversationById(n)
-          .then(conversation => {
-            if (conversation) {
-              setSelectedId(conversation.id);
-            } else {
-              console.error("Conversation not found.");
-            }
-          });
-      } else {
-        setSelectedId(null);
-      }
-    };
-
+    // If user navigates to /c/<id>, set that as selected
     const itemId = currentPath.split('/c/')[1];
-    handleSelectedConversation(itemId)
+    if (itemId) {
+      let n = Number(itemId);
+      ConversationService.getConversationById(n).then((conversation) => {
+        if (conversation) {
+          setSelectedId(conversation.id);
+        } else {
+          console.error("Conversation not found.");
+        }
+      });
+    } else {
+      setSelectedId(null);
+    }
   }, [currentPath]);
 
   useEffect(() => {
-    const sortedConversations = [...conversations].sort((a, b) => b.timestamp - a.timestamp);  // Sort by timestamp if not already sorted
+    const sortedConversations = [...conversations].sort((a, b) => b.timestamp - a.timestamp);
     setConversationsWithMarkers(insertTimeMarkers(sortedConversations));
   }, [conversations]);
 
-  const getHeaderFromTimestamp = (timestamp: number) => {
-    const today = new Date();
-    const date = new Date(timestamp);
-
-    const diffTime = Math.abs(today.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 1) {
-      return t('today');
-    }
-    if (diffDays === 2) {
-      return t('yesterday');
-    }
-    if (diffDays <= 7) {
-      return t('previous-7-days');
-    }
-    if (diffDays <= 30) {
-      return t('previous-30-days');
-    }
-
-    return date.toLocaleString(navigator.language, {month: 'long'});
-  };
-
-  const insertTimeMarkers = (conversations: Conversation[]) => {
+  const insertTimeMarkers = (list: Conversation[]) => {
     let lastHeader = "";
     const withMarkers: Conversation[] = [];
-    conversations.forEach((convo, index) => {
+    list.forEach((convo, index) => {
       const currentHeader = getHeaderFromTimestamp(convo.timestamp);
       if (currentHeader !== lastHeader) {
+        // marker
         withMarkers.push({
           id: 0,
-          gid: 0,
-          messages: "",
-          model: "",
-          systemPrompt: "",
+          title: currentHeader,
           timestamp: 0,
-          marker: true,
-          title: currentHeader
-        });
+          marker: true
+        } as Conversation);
         lastHeader = currentHeader;
       }
       withMarkers.push(convo);
@@ -110,110 +77,81 @@ const ConversationList: React.FC = () => {
     return withMarkers;
   };
 
+  const getHeaderFromTimestamp = (ts: number) => {
+    const today = new Date();
+    const date = new Date(ts); // if ts is in ms, ensure that
+    const diffTime = Math.abs(today.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-  const loadConversations = async () => {
-    ConversationService.loadRecentConversationsTitleOnly().then(conversations => {
-      setConversations(conversations);
-    }).catch(error => {
-      console.error("Error loading conversations:", error);
-    });
+    if (diffDays === 1) return t('today');
+    if (diffDays === 2) return t('yesterday');
+    if (diffDays <= 7)  return t('previous-7-days');
+    if (diffDays <= 30) return t('previous-30-days');
+
+    return date.toLocaleString(navigator.language, { month: 'long' });
   };
 
-  const handleConversationChange = (event: ConversationChangeEvent) => {
-
-    if (event.action === 'add') {
-      const conversation = event.conversation!;
-      setSelectedId(conversation.id);
-      setConversations(prevConversations => [conversation, ...prevConversations]);
-
-      if (scrollContainerRef.current) {
-        if ("scrollTop" in scrollContainerRef.current) {
-          scrollContainerRef.current.scrollTop = 0;
-        }
-      }
-    } else if (event.action === 'edit') {
-      if (event.id === 0) {
-        console.error("invali state, cannot edit id = 0");
-      } else {
-        setConversations(prevConversations => prevConversations.map(conv => {
-          if (conv.id === event.id && event.conversation) {
-            return event.conversation;
-          }
-          return conv;
-        }));
-      }
-    } else if (event.action === 'delete') {
-      if (event.id === 0) {
-        loadConversations();
-      } else {
-        setConversations(prevConversations => prevConversations.filter(conv => conv.id !== event.id));
-      }
+  const loadConversations = async () => {
+    try {
+      const convs = await ConversationService.loadRecentConversationsTitleOnly();
+      setConversations(convs);
+    } catch (error) {
+      console.error("Error loading conversations:", error);
     }
   };
 
+  const handleConversationChange = (event: ConversationChangeEvent) => {
+    if (event.action === 'add' && event.conversation) {
+      setSelectedId(event.conversation.id);
+      setConversations(prev => [event.conversation!, ...prev]);
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTop = 0;
+      }
+    } else if (event.action === 'edit' && event.id) {
+      setConversations(prev =>
+        prev.map(c => c.id === event.id ? (event.conversation || c) : c)
+      );
+    } else if (event.action === 'delete' && event.id) {
+      setConversations(prev => prev.filter(c => c.id !== event.id));
+    }
+  };
 
   const handleSearch = async (searchString: string) => {
-    if (!searchString || searchString.trim() === '') {
+    if (!searchString.trim()) {
       loadConversations();
       return;
     }
     searchString = searchString.trim();
-    // Check if searchString starts with 'in:convo'
     if (searchString.toLowerCase().startsWith('in:convo')) {
       const actualSearchString = searchString.substring('in:convo'.length).trim();
-      if (actualSearchString === '') {
-        // Handle the case where there might be no actual search term provided after 'in:convo'
-        setConversations([]); // or however you wish to handle this case.
+      if (!actualSearchString) {
+        setConversations([]);
         return;
       }
       try {
-        const foundConversations = await ConversationService.searchWithinConversations(actualSearchString);
-        // Assuming you do NOT want to modify the messages in this case, as you're searching within them
-        setConversations(foundConversations);
-      } catch (error) {
-        console.error("Error during search within conversations:", error);
+        const found = await ConversationService.searchWithinConversations(actualSearchString);
+        setConversations(found);
+      } catch (err) {
+        console.error(err);
       }
     } else {
-      // Original search logic for searching by conversation title
+      // Title search
       try {
-        const foundConversations = await ConversationService.searchConversationsByTitle(searchString);
-        const modifiedConversations = foundConversations.map(conversation => ({
-          ...conversation,
-          messages: "[]" // Assuming overwriting messages or handling differently was intentional
-        }));
-        setConversations(modifiedConversations);
-      } catch (error) {
-        console.error("Error during title search:", error);
+        const found = await ConversationService.searchConversationsByTitle(searchString);
+        // Overwrite messages with [] if you want
+        const modified = found.map(c => ({ ...c, messages: "[]" }));
+        setConversations(modified);
+      } catch (err) {
+        console.error(err);
       }
     }
   };
-
-  /*
-    interface SearchOptionsPopdownProps {
-      onSelect: (value: string) => void;
-    }
-
-    const SearchOptionsPopdown: React.FC<SearchOptionsPopdownProps> = ({onSelect}) => {
-      return (
-        <div className="absolute w-full z-20 bg-white dark:text-gray-300 dark:bg-gray-700 shadow-lg rounded-md p-4"
-             style={{top: '100%'}}>
-          <div className="text-sm font-medium">SEARCH OPTIONS</div>
-          <ul>
-            <li
-              className="cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600 p-1 rounded flex justify-between items-center"
-              onClick={() => onSelect('in:message ')}
-            >
-              <span>in:message</span> <span className="ml-auto">+</span>
-            </li>
-          </ul>
-        </div>
-      );
-    };*/
 
   const ConversationListItemMemo = React.memo(ConversationListItem);
 
   return (
     <div className="conversation-list-container">
+      {/* Search Bar */}
       <div id="conversation-search" className="flex flex-row items-center mb-2 relative">
         <input
           id="searchInput"
@@ -223,7 +161,7 @@ const ConversationList: React.FC = () => {
           placeholder={t('search')}
           value={searchInputValue}
           onFocus={() => setShowSearchOptions(true)}
-          onBlur={() => setTimeout(() => setShowSearchOptions(false), 200)} // Delay to allow click event to fire on the options
+          onBlur={() => setTimeout(() => setShowSearchOptions(false), 200)}
           onChange={(e) => setSearchInputValue(e.target.value)}
           onKeyPress={(e) => {
             if (e.key === 'Enter') {
@@ -240,48 +178,44 @@ const ConversationList: React.FC = () => {
           }}
         >
           <MagnifyingGlassIcon
-              style={{ color: userSettings.theme === 'dark' ? '#FFFFFF' : '#000000' }}
-              {...iconProps} />
+            style={{ color: userSettings?.theme === 'dark' ? '#FFFFFF' : '#000000' }}
+            {...iconProps}
+          />
         </button>
-        {/* {
-                    showSearchOptions && (
-                      <SearchOptionsPopdown
-                        onSelect={(value) => {
-                          setSearchInputValue(prev => prev + value);
-                          setShowSearchOptions(false); // Optionally, keep it open
-                        }}/>
-                    )
-      }*/}
       </div>
-      <div id="conversation-list" ref={scrollContainerRef}
-           className="flex-col flex-1 transition-opacity duration-500 -mr-2 pr-2 overflow-y-auto">
+
+      {/* Conversation List */}
+      <div
+        id="conversation-list"
+        ref={scrollContainerRef}
+        className="flex-col flex-1 transition-opacity duration-500 -mr-2 pr-2 overflow-y-auto"
+      >
         <div className="flex flex-col gap-2 pb-2 dark:text-gray-100 text-gray-800 text-sm">
           <div className="relative overflow-x-hidden" style={{height: "auto", opacity: 1}}>
             <ol>
-              {
-                conversationsWithMarkers.map((convo, index) => {
-                  if ("marker" in convo) {
-                    return (
-                      <li key={`marker-${index}`}
-                          className="sticky top-0 z-[16]">
-                        <h3
-                          className="h-9 pb-2 pt-3 px-3 text-xs text-gray-500 font-medium text-ellipsis overflow-hidden bg-gray-50 dark:bg-gray-900">
-                          {convo.title}
-                        </h3>
-                      </li>
-                    );
-                  } else {
-                    return (
-                      <ConversationListItemMemo
-                        key={convo.id}
-                        convo={convo}
-                        isSelected={selectedId === convo.id}
-                        loadConversations={loadConversations}
-                        setSelectedId={setSelectedId}
-                      />
-                    );
-                  }
-                })}
+              {conversationsWithMarkers.map((convo, index) => {
+                if (convo.marker) {
+                  // Render time marker header
+                  return (
+                    <li key={`marker-${index}`} className="sticky top-0 z-[16]">
+                      <h3 className="h-9 pb-2 pt-3 px-3 text-xs text-gray-500 font-medium bg-gray-50 dark:bg-gray-900">
+                        {convo.title}
+                      </h3>
+                    </li>
+                  );
+                } else {
+                  // Normal conversation item
+                  return (
+                    <ConversationListItemMemo
+                      key={convo.id}
+                      convo={convo}
+                      isSelected={selectedId === convo.id}
+                      loadConversations={loadConversations}
+                      setSelectedId={setSelectedId}
+                    />
+                  );
+                }
+              })}
             </ol>
           </div>
         </div>

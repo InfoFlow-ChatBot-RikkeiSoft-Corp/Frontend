@@ -20,7 +20,6 @@ export interface ChatCompletionMessage {
 
 export interface ChatCompletionRequest {
   messages: ChatCompletionMessage[];
-  model: string;
   frequency_penalty?: number | null;
   presence_penalty?: number | null;
   logit_bias?: { [token: string]: number } | null;
@@ -50,7 +49,6 @@ export interface ChatCompletion {
   id: string;
   object: string;
   created: number;
-  model: string;
   usage: {
     prompt_tokens: number;
     completion_tokens: number;
@@ -59,11 +57,19 @@ export interface ChatCompletion {
   choices: ChatCompletionChoice[];
 }
 
+// ChatMessage 타입에 'function_call'과 'metadata'를 추가:
 export interface ChatMessage {
   id?: number;
   role: Role;
   messageType: MessageType;
   content: string;
+  function_call?: {
+    name: string;
+    arguments: string;
+  };
+  metadata?: {
+    [key: string]: string;
+  };
   name?: string;
   fileDataRef?: FileDataRef[];
 }

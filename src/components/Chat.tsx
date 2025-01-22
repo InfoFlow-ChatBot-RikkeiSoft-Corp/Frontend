@@ -2,8 +2,12 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 import ChatBlock from "./ChatBlock";
 import {ChatMessage} from "../models/ChatCompletion";
 import {useTranslation} from 'react-i18next';
+import Tooltip from "./Tooltip";
 import {Conversation} from "../service/ConversationService";
+import {OPENAI_DEFAULT_SYSTEM_PROMPT} from "../config";
+import {DEFAULT_INSTRUCTIONS} from "../constants/appConstants";
 import {UserContext} from '../UserContext';
+import {InformationCircleIcon} from "@heroicons/react/24/outline";
 
 interface Props {
   chatBlocks: ChatMessage[];
@@ -62,8 +66,6 @@ const Chat: React.FC<Props> = ({
         <div id={'chat-container1'} className="relative chat-container1 flex flex-col items-center text-sm dark:bg-gray-900">
           <div
               className={`flex w-full items-center justify-center gap-1 p-3 text-gray-500 dark:border-gray-900/50 dark:bg-gray-900 dark:text-gray-300 ${!(conversation === null) ? 'border-b border-black/10' : ''}`}>
-            <div className="flex items-center flex-row gap-1">
-            </div>
           </div>
           {chatBlocks.map((block, index) => (
               <ChatBlock key={`chat-block-${block.id}`}
