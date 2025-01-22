@@ -66,17 +66,6 @@ const Chat: React.FC<Props> = ({
         <div id={'chat-container1'} className="relative chat-container1 flex flex-col items-center text-sm dark:bg-gray-900">
           <div
               className={`flex w-full items-center justify-center gap-1 p-3 text-gray-500 dark:border-gray-900/50 dark:bg-gray-900 dark:text-gray-300 ${!(conversation === null) ? 'border-b border-black/10' : ''}`}>
-            <div className="flex items-center flex-row gap-1">
-              {!conversation ? '' : (
-                  <Tooltip
-                      title={conversation.systemPrompt ?? userSettings.instructions ?? OPENAI_DEFAULT_SYSTEM_PROMPT ?? DEFAULT_INSTRUCTIONS}
-                      side="bottom" sideOffset={10}>
-                              <span style={{marginLeft: '10px', fontSize: '0.85rem', color: '#6b7280'}}>
-                                 <InformationCircleIcon width={20} height={20} stroke={'currentColor'}/>
-                              </span>
-                  </Tooltip>
-              )}
-            </div>
           </div>
           {chatBlocks.map((block, index) => (
               <ChatBlock key={`chat-block-${block.id}`}

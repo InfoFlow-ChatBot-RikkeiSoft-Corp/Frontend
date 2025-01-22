@@ -7,47 +7,50 @@ import { API_ENDPOINTS } from '../constants/apiEndpoints';
 const WeblinkTab: React.FC = () => {
   const [weblink, setWeblink] = useState<string>('');
   const [weblinkList, setWeblinkList] = useState<Array<{ link: string; date: string }>>([]);
+  const [title, setTitle] = useState("");
 
   useEffect(() => {
     loadWeblinkList();
   }, []);
 
   const handleWeblinkUpload = async () => {
-    const username = AuthService.getUsername();
+    const username = AuthService.getUsername(); // 사용자 이름 가져오기
     if (!username) {
       NotificationService.handleError("Username not found. Please log in again.");
       return;
     }
-
-    if (!weblink) {
-      NotificationService.handleError("No Weblink provided.");
-      return;
-    }
-
+  
+    // if (!weblink || !title) {
+    //   NotificationService.handleError("Both title and weblink must be provided.");
+    //   return;
+    // }
+  
     try {
-      const response = await fetch(API_ENDPOINTS.UPLOAD_FILE, {
+      const queryUrl = `http://127.0.0.1:5000/api/files/upload?title=${encodeURIComponent(title)}&url=${encodeURIComponent(weblink)}`;
+      console.log("Query URL:", queryUrl);
+  
+      const response = await fetch(queryUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          username,
+          username, // 사용자 이름 전달
         },
-        body: JSON.stringify({
-          url: weblink,
-        }),
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || "Failed to upload Weblink.");
       }
-
+  
       NotificationService.handleSuccess("Weblink uploaded successfully.");
       setWeblink('');
       loadWeblinkList();
     } catch (error) {
+      // console.error("Error uploading weblink:", error.message);
       NotificationService.handleUnexpectedError(new Error("Failed to upload Weblink"));
     }
   };
+  
 
   const loadWeblinkList = async () => {
     const username = AuthService.getUsername();

@@ -20,6 +20,16 @@ interface UpdatePrompt {
   prompt_text?: string;
   updated_by?: string;
 }
+interface PromptResponse {
+  message: string;
+  prompt: {
+    id: number;
+    name: string;
+    text: string;
+    is_active: boolean;
+  };
+}
+
 
 class PromptService {
   // Fetch all prompts
@@ -39,14 +49,14 @@ class PromptService {
   }
 
   // Add a new prompt
-  static async addPrompt(newPrompt: NewPrompt): Promise<string> {
+  static async addPrompt(newPrompt: NewPrompt): Promise<Prompt> {
     try {
-      const response: AxiosResponse<{ message: string }> = await axios.post(API_ENDPOINTS.ADD_PROMPT, newPrompt);
-      return response.data.message;
+      const response: AxiosResponse<{ message: string; prompt: Prompt }> = await axios.post(API_ENDPOINTS.ADD_PROMPT, newPrompt);
+      return response.data.prompt; // 새로 생성된 Prompt 데이터 반환
     } catch (error) {
       throw new Error('Error adding new prompt.');
     }
-  }
+  }  
 
   // Update an existing prompt by ID
   static async updatePrompt(id: number, updatedData: UpdatePrompt): Promise<string> {
