@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ChatBubbleLeftIcon, PencilSquareIcon, TrashIcon, PlusIcon } from '@heroicons/react/24/outline';
 import PromptService from '../service/PromptService';
+import { AuthService } from '../service/AuthService';
+import { NotificationService } from '../service/NotificationService';
 import '../styles/PromptTab.css';
 
 interface Prompt {
@@ -15,13 +17,23 @@ const PromptTab: React.FC = () => {
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [promptText, setPromptText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Fetch all prompts
-    PromptService.getAllPrompts()
-      .then(response => setPrompts(response))
-      .catch(error => console.error('Error fetching prompts:', error));
+    fetchPrompts();
   }, []);
+
+  const fetchPrompts = async () => {
+    setLoading(true);
+    try {
+      const response = await PromptService.getAllPrompts();
+      setPrompts(response);
+    } catch (error) {
+      NotificationService.handleError('Error fetching prompts');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handlePromptClick = (prompt: Prompt) => {
     setSelectedPrompt(prompt);
@@ -33,41 +45,65 @@ const PromptTab: React.FC = () => {
     setIsEditing(true);
   };
 
-  const handleSavePrompt = () => {
+  const handleSavePrompt = async () => {
+    const currentUser = AuthService.getUsername();
+    if (!currentUser) {
+      NotificationService.handleError('No user is logged in.');
+      return;
+    }
+
     if (selectedPrompt) {
-      PromptService.updatePrompt(selectedPrompt.id, { prompt_text: promptText, updated_by: 'current_user' }) // Replace 'current_user' with actual user
-        .then(response => {
-          console.log('Prompt updated successfully');
-          setPrompts(prompts.map(p => p.id === selectedPrompt.id ? { ...p, text: promptText } : p));
-          setIsEditing(false);
-        })
-        .catch(error => console.error('Error updating prompt:', error));
+      setLoading(true);
+      try {
+        await PromptService.updatePrompt(selectedPrompt.id, { prompt_text: promptText, updated_by: currentUser });
+        setPrompts(prompts.map(p => p.id === selectedPrompt.id ? { ...p, text: promptText } : p));
+        setIsEditing(false);
+        NotificationService.handleSuccess('Prompt updated successfully');
+      } catch (error) {
+        NotificationService.handleError('Error updating prompt');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
-  const handleNewPrompt = () => {
+  const handleNewPrompt = async () => {
+    const currentUser = AuthService.getUsername();
+    if (!currentUser) {
+      NotificationService.handleError('No user is logged in.');
+      return;
+    }
+
     const newPrompt: Prompt = { id: Date.now(), name: 'New Prompt', text: '', is_active: true };
-    PromptService.addPrompt({ prompt_name: newPrompt.name, prompt_text: newPrompt.text, created_by: 'current_user' }) // Replace 'current_user' with actual user
-      .then(response => {
-        console.log('Prompt added successfully');
-        setPrompts([...prompts, newPrompt]);
-        setSelectedPrompt(newPrompt);
-        setPromptText('');
-        setIsEditing(true);
-      })
-      .catch(error => console.error('Error adding new prompt:', error));
+    setLoading(true);
+    try {
+      await PromptService.addPrompt({ prompt_name: newPrompt.name, prompt_text: newPrompt.text, created_by: currentUser });
+      setPrompts([...prompts, newPrompt]);
+      setSelectedPrompt(newPrompt);
+      setPromptText('');
+      setIsEditing(true);
+      NotificationService.handleSuccess('New prompt added successfully');
+    } catch (error) {
+      NotificationService.handleError('Error adding new prompt');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDeletePrompt = (id: number) => {
-    PromptService.deletePrompt(id)
-      .then(response => {
-        console.log('Prompt deleted successfully');
-        setPrompts(prompts.filter(p => p.id !== id));
-        setSelectedPrompt(null);
-        setPromptText('');
-        setIsEditing(false);
-      })
-      .catch(error => console.error('Error deleting prompt:', error));
+  const handleDeletePrompt = async (id: number) => {
+    setLoading(true);
+    try {
+      await PromptService.deletePrompt(id);
+      setPrompts(prompts.filter(p => p.id !== id));
+      setSelectedPrompt(null);
+      setPromptText('');
+      setIsEditing(false);
+      NotificationService.handleSuccess('Prompt deleted successfully');
+    } catch (error) {
+      NotificationService.handleError('Error deleting prompt');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const editPromptName = (prompt: Prompt) => {
@@ -78,7 +114,6 @@ const PromptTab: React.FC = () => {
 
   return (
     <div className="prompt-tab-container">
-      {/* Sidebar */}
       <div className="prompt-sidebar">
         <div className="scrollbar-trigger">
           <h2 className="sr-only">Prompt List</h2>
@@ -108,7 +143,6 @@ const PromptTab: React.FC = () => {
           </nav>
         </div>
       </div>
-      {/* Main Page */}
       <div className="prompt-main">
         <textarea
           className="prompt-text prompt-textarea"
